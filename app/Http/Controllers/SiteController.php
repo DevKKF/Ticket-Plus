@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Maatwebsite\Excel\Facades\Excel;
+use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
 use App\Models\Region;
 use App\Models\TypeAction;
@@ -16,11 +17,16 @@ use App\Models\TopologieTypologie;
 use App\Models\Site;
 use App\Models\SiteUser;
 use App\Models\Ticket;
+use App\Models\ActionTicket;
 
 use App\Imports\SiteImport;
-
+use App\Exports\SiteExport;
+ 
 use Str;
 use Stdfn;
+use View;
+use Dompdf\Dompdf;
+use Dompdf\Options;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 
@@ -136,7 +142,7 @@ class SiteController extends Controller
             }
         }
 
-        if(Auth::user()->profil_id == 1 or Stdfn::isActionAutorisee(Auth::user()->id, "ACC_001") or Stdfn::isActionAutorisee(Auth::user()->id, "ACC_002")){
+        if(Auth::user()->profil_id == 1 or Stdfn::isActionAutorisee(Auth::user()->id, "ACC_001")or Stdfn::isActionAutorisee(Auth::user()->id, "ACC_002") or Stdfn::isActionAutorisee(Auth::user()->id, "ACC_005")){
 
             $sites = Site::leftjoin('region', 'region.region_id', 'site.region_id')
                         ->leftjoin('zone', 'zone.zone_id', 'site.zone_id')
@@ -157,6 +163,14 @@ class SiteController extends Controller
 		
         $zones = Zone::where(['zone_statut'=>"VALIDE"])->orderby('zone_nom','ASC')->get();
 		$operateurs = Operateur::where(['operateur_statut'=>"VALIDE"])->orderby('operateur_nom','ASC')->get();
+
+        // Stocker les données de recherche en session
+        Session::put('recherche_data_site', [
+            'code' => $code,
+            'zone' => $zone,
+            'operateur' => $operateur,
+            'datecreation' => $datecreation,
+        ]);
 
 		return view('site.liste', [
             'sites' => $sites,  
@@ -520,172 +534,152 @@ class SiteController extends Controller
 
     public function exporterCSV()
     {
-        $sites = Site::join('region', 'region.region_id', '=', 'site.region_id')
-            ->join('zone', 'zone.zone_id', '=', 'site.zone_id')
-            ->join('operateur', 'operateur.operateur_id', '=', 'site.operateur_id')
-            ->join('priorite_ihs', 'priorite_ihs.priorite_ihs_id', '=', 'site.priorite_ihs_id')
-            ->join('topologie_typologie', 'topologie_typologie.topologie_typologie_id', '=', 'site.topologie_typologie_id')
-            ->where('site.site_statut', 'VALIDE')
-            ->select(
-                'site.site_ihs',
-                'site.site_nom',
-                'region.region_nom',
-                'zone.zone_nom',
-                'operateur.operateur_nom',
-                'priorite_ihs.priorite_ihs_nom',
-                'topologie_typologie.topologie_typologie_nom',
-                'site.site_sbc'
-            )
-            ->orderBy('site.site_nom', 'asc')
-            ->get();
+        // Récupère les données de session ou un tableau vide
+        $data = Session::get('recherche_data_site', []); 
 
-        $headers = [
-            'Content-Type' => 'text/csv; charset=UTF-8',
-            'Content-Disposition' => 'attachment; filename="sites.csv"',
-        ];
+        if(Auth::user()->profil_id == 1 or Stdfn::isActionAutorisee(Auth::user()->id, "ACC_001")or Stdfn::isActionAutorisee(Auth::user()->id, "ACC_002") or Stdfn::isActionAutorisee(Auth::user()->id, "ACC_005")){
 
-        $callback = function() use ($sites) {
-            $file = fopen('php://output', 'w');
-            // Ajouter le BOM UTF-8
-            fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
-            
-            // En-têtes en UTF-8
-            $headers = [
-                'Site IHS',
-                'Site Name',
-                'Région',
-                'Zone',
-                'Opérateur',
-                'Priority IHS',
-                'Topology / Typology',
-                'SBC'
-            ];
-            fputcsv($file, $headers);
+            $query = Site::select('site_ihs', 'site_nom', 'region_nom', 'zone_nom', 'operateur_nom', 'priorite_ihs_nom', 'topologie_typologie_nom')
+                        ->leftJoin('zone', 'zone.zone_id', '=', 'site.zone_id')
+                        ->leftJoin('region', 'region.region_id', '=', 'site.region_id')
+                        ->leftJoin('topologie_typologie', 'topologie_typologie.topologie_typologie_id', '=', 'site.topologie_typologie_id')
+                        ->leftJoin('priorite_ihs', 'priorite_ihs.priorite_ihs_id', '=', 'site.priorite_ihs_id')
+                        ->leftJoin('operateur', 'operateur.operateur_id', '=', 'site.operateur_id')
+                        ->orderBy('site_ihs', 'DESC');
 
-            foreach ($sites as $site) {
-                fputcsv($file, [
-                    $site->site_ihs,
-                    $site->site_nom,
-                    $site->region_nom,
-                    $site->zone_nom,
-                    $site->operateur_nom,
-                    $site->priorite_ihs_nom,
-                    $site->topologie_typologie_nom,
-                    $site->site_sbc
-                ]);
+            if (!empty($data)) {
+                if (!empty($data['code'])) {
+                    $query->where('site.site_ihs', '=', $data['code']);
+                }
+                if (!empty($data['zone'])) {
+                    $query->where('zone.zone_id', '=', $data['zone']);
+                }
+                if (!empty($data['operateur'])) {
+                    $query->where('operateur.operateur_id', '=', $data['operateur']);
+                }
+                if (!empty($data['datecreation'])) {
+                    $query->where('site.site_date_creation', '=', $data['datecreation']);
+                }
             }
-            fclose($file);
-        };
 
-        return response()->stream($callback, 200, $headers);
+            $sites = $query->get();
+
+            if($sites->count() > 0){
+                return Excel::download(new SiteExport($sites), 'liste-des-sites.csv', \Maatwebsite\Excel\Excel::CSV);
+            }else{
+                return back()->with('info_warning',"Il n'y a pas de données à exporter de la base de données");
+            }
+
+        }else{
+            return back()->with('info_warning',"Vous n'êtes pas autorisé faire de exportation");
+        }
     }
 
     public function exporterExcel()
     {
-        $sites = Site::join('region', 'region.region_id', '=', 'site.region_id')
-            ->join('zone', 'zone.zone_id', '=', 'site.zone_id')
-            ->join('operateur', 'operateur.operateur_id', '=', 'site.operateur_id')
-            ->join('priorite_ihs', 'priorite_ihs.priorite_ihs_id', '=', 'site.priorite_ihs_id')
-            ->join('topologie_typologie', 'topologie_typologie.topologie_typologie_id', '=', 'site.topologie_typologie_id')
-            ->where('site.site_statut', 'VALIDE')
-            ->select(
-                'site.site_ihs',
-                'site.site_nom',
-                'region.region_nom',
-                'zone.zone_nom',
-                'operateur.operateur_nom',
-                'priorite_ihs.priorite_ihs_nom',
-                'topologie_typologie.topologie_typologie_nom',
-                'site.site_sbc'
-            )
-            ->orderBy('site.site_nom', 'asc')
-            ->get();
+        //Récupère les données de session ou un tableau vide
+        $data = Session::get('recherche_data_site', []); 
 
-        return response()->streamDownload(function() use ($sites) {
-            $excel = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
-            $sheet = $excel->getActiveSheet();
+        if(Auth::user()->profil_id == 1 or Stdfn::isActionAutorisee(Auth::user()->id, "ACC_001")or Stdfn::isActionAutorisee(Auth::user()->id, "ACC_002") or Stdfn::isActionAutorisee(Auth::user()->id, "ACC_005")){
 
-            // En-têtes
-            $sheet->setCellValue('A1', 'Site IHS');
-            $sheet->setCellValue('B1', 'Site Name');
-            $sheet->setCellValue('C1', 'Région');
-            $sheet->setCellValue('D1', 'Zone');
-            $sheet->setCellValue('E1', 'Opérateur');
-            $sheet->setCellValue('F1', 'Priority IHS');
-            $sheet->setCellValue('G1', 'Topology / Typology');
-            $sheet->setCellValue('H1', 'SBC');
+            $query = Site::select('site_ihs', 'site_nom', 'site_nom', 'region_nom', 'zone_nom', 'operateur_nom', 'priorite_ihs_nom', 'topologie_typologie_nom')
+                        ->leftJoin('zone', 'zone.zone_id', '=', 'site.zone_id')
+                        ->leftJoin('region', 'region.region_id', '=', 'site.region_id')
+                        ->leftJoin('topologie_typologie', 'topologie_typologie.topologie_typologie_id', '=', 'site.topologie_typologie_id')
+                        ->leftJoin('priorite_ihs', 'priorite_ihs.priorite_ihs_id', '=', 'site.priorite_ihs_id')
+                        ->leftJoin('operateur', 'operateur.operateur_id', '=', 'site.operateur_id')
+                        ->orderBy('site_ihs', 'DESC');
 
-            // Style des en-têtes
-            $headerStyle = [
-                'font' => ['bold' => true],
-                'alignment' => ['horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER],
-                'fill' => [
-                    'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
-                    'startColor' => ['rgb' => 'E4E4E4']
-                ]
-            ];
-            $sheet->getStyle('A1:H1')->applyFromArray($headerStyle);
-
-            // Données
-            $row = 2;
-            foreach ($sites as $site) {
-                $sheet->setCellValue('A' . $row, $site->site_ihs);
-                $sheet->setCellValue('B' . $row, $site->site_nom);
-                $sheet->setCellValue('C' . $row, $site->region_nom);
-                $sheet->setCellValue('D' . $row, $site->zone_nom);
-                $sheet->setCellValue('E' . $row, $site->operateur_nom);
-                $sheet->setCellValue('F' . $row, $site->priorite_ihs_nom);
-                $sheet->setCellValue('G' . $row, $site->topologie_typologie_nom);
-                $sheet->setCellValue('H' . $row, $site->site_sbc);
-                $row++;
+            // Appliquer les filtres seulement si des valeurs existent
+            if (!empty($data)) {
+                if (!empty($data['code'])) {
+                    $query->where('site.site_ihs', '=', $data['code']);
+                }
+                if (!empty($data['zone'])) {
+                    $query->where('zone.zone_id', '=', $data['zone']);
+                }
+                if (!empty($data['operateur'])) {
+                    $query->where('operateur.operateur_id', '=', $data['operateur']);
+                }
+                if (!empty($data['datecreation'])) {
+                    $query->where('site.site_date_creation', '=', $data['datecreation']);
+                }
             }
 
-            // Ajuster la largeur des colonnes
-            foreach(range('A','H') as $col) {
-                $sheet->getColumnDimension($col)->setAutoSize(true);
-            }
+            $sites = $query->get();
 
-            $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($excel);
-            $writer->save('php://output');
-        }, 'sites.xlsx', [
-            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-            'Content-Disposition' => 'attachment; filename="sites.xlsx"'
-        ]);
+            //dd($data, $sites);
+            if($sites->count() > 0){
+                return Excel::download(new SiteExport($sites), 'liste-des-sites.xlsx');
+            }else{
+                return back()->with('info_warning',"Il n'a pas de données à exporter de la base de données");
+            }
+        }else{
+            return back()->with('info_warning',"Vous n'êtes pas autorisé faire de exportation");
+        }
     }
 
     public function exporterPDF()
-    {
-        $sites = Site::join('region', 'region.region_id', '=', 'site.region_id')
-            ->join('zone', 'zone.zone_id', '=', 'site.zone_id')
-            ->join('operateur', 'operateur.operateur_id', '=', 'site.operateur_id')
-            ->join('priorite_ihs', 'priorite_ihs.priorite_ihs_id', '=', 'site.priorite_ihs_id')
-            ->join('topologie_typologie', 'topologie_typologie.topologie_typologie_id', '=', 'site.topologie_typologie_id')
-            ->where('site.site_statut', 'VALIDE')
-            ->select(
-                'site.site_ihs',
-                'site.site_nom',
-                'region.region_nom',
-                'zone.zone_nom',
-                'operateur.operateur_nom',
-                'priorite_ihs.priorite_ihs_nom',
-                'topologie_typologie.topologie_typologie_nom',
-                'site.site_sbc'
-            )
-            ->orderBy('site.site_nom', 'asc')
-            ->get();
+    {  
+        //Récupère les données de session ou un tableau vide
+        $data = Session::get('recherche_data_site', []); 
 
-        $pdf = \PDF::loadView('exports.sites', ['sites' => $sites])
-            ->setPaper('a4', 'landscape')
-            ->setOptions([
-                'isPhpEnabled' => true,
-                'isHtml5ParserEnabled' => true,
-                'isRemoteEnabled' => true,
-                'margin_top' => 20,
-                'margin_bottom' => 20,
-                'margin_left' => 15,
-                'margin_right' => 15,
-            ]);
+        if(Auth::user()->profil_id == 1 or Stdfn::isActionAutorisee(Auth::user()->id, "ACC_001")or Stdfn::isActionAutorisee(Auth::user()->id, "ACC_002") or Stdfn::isActionAutorisee(Auth::user()->id, "ACC_005")){
+            
+            $query = Site::select('site_ihs', 'site_sbc', 'site_nom', 'region_nom', 'zone_nom', 'operateur_nom', 'priorite_ihs_nom', 'topologie_typologie_nom')
+                        ->leftJoin('zone', 'zone.zone_id', '=', 'site.zone_id')
+                        ->leftJoin('region', 'region.region_id', '=', 'site.region_id')
+                        ->leftJoin('topologie_typologie', 'topologie_typologie.topologie_typologie_id', '=', 'site.topologie_typologie_id')
+                        ->leftJoin('priorite_ihs', 'priorite_ihs.priorite_ihs_id', '=', 'site.priorite_ihs_id')
+                        ->leftJoin('operateur', 'operateur.operateur_id', '=', 'site.operateur_id')
+                        ->orderBy('site_ihs', 'DESC');
 
-        return $pdf->download('sites.pdf');
+            // Appliquer les filtres seulement si des valeurs existent
+            if (!empty($data)) {
+                if (!empty($data['code'])) {
+                    $query->where('site.site_ihs', '=', $data['code']);
+                }
+                if (!empty($data['zone'])) {
+                    $query->where('zone.zone_id', '=', $data['zone']);
+                }
+                if (!empty($data['operateur'])) {
+                    $query->where('operateur.operateur_id', '=', $data['operateur']);
+                }
+                if (!empty($data['datecreation'])) {
+                    $query->where('site.site_date_creation', '=', $data['datecreation']);
+                }
+            }
+
+            $sites = $query->get();
+
+            //dd($data, $sites);
+            if($sites->count() > 0){
+                
+                $html = View::make('exports.sites', compact('sites'))->render();
+
+                $dompdf = new Dompdf();
+                $dompdf->loadHtml($html);
+                $dompdf->setPaper('A4', 'landscape');
+                $dompdf->render();
+
+                // Ajouter la numérotation des pages en bas du document
+                $canvas = $dompdf->getCanvas();
+                $canvas->page_script(function ($pageNumber, $pageCount, $canvas, $fontMetrics) {
+                    $text = "Page $pageNumber / $pageCount";
+                    $font = $fontMetrics->getFont('Arial', 'normal');
+                    $size = 10;
+                    $width = $fontMetrics->getTextWidth($text, $font, $size);
+                    $x = ($canvas->get_width() - $width) / 2;
+                    $y = $canvas->get_height() - 30;
+                    $canvas->text($x, $y, $text, $font, $size);
+                });
+
+                return $dompdf->stream("liste-des-sites.pdf");
+            }else{
+                return back()->with('info_warning',"Il n'a pas de données à exporter de la base de données");
+            }
+        }else{
+            return back()->with('info_warning',"Vous êtes autorisé faire de exportation");
+        }
     }
 }

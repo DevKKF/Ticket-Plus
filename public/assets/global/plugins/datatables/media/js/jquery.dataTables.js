@@ -11209,7 +11209,7 @@
 			 *      } );
 			 *    } );
 			 */
-			"sZeroRecords": "Aucun enregistrements correspondants trouvés"
+			"sZeroRecords": "No matching records found"
 		},
 	
 	

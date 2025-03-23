@@ -12,4 +12,17 @@ class HistoriqueTicket extends Model
     protected $table            = "historique_ticket";
     protected $primaryKey       = "historique_ticket_id";
     public $timestamps          = false;
+
+    
+    //Créer par
+    public function enregistrer_par()
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
+
+    //Modifier par
+    public function modifier_par()
+    {
+        return $this->belongsTo(User::class, 'modifierpar_id');
+    }
 }

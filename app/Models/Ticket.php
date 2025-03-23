@@ -17,4 +17,16 @@ class Ticket extends Model
     {
         return $this->belongsTo(User::class, 'user_id');
     }
+
+    //Créer par
+    public function enregistrer_par()
+    {
+        return $this->belongsTo(User::class, 'creerpar_id');
+    }
+
+    //Modifier par
+    public function modifier_par()
+    {
+        return $this->belongsTo(User::class, 'modifierpar_id');
+    }
 }

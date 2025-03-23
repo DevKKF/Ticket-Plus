@@ -25,7 +25,7 @@ var TableAjax = function () {
             onDataLoad: function(grid) {
                 // execute some code on ajax data load
             },
-            loadingMessage: 'Chargement...',
+            loadingMessage: 'Loading...',
             dataTable: { // here you can define a typical datatable settings from http://datatables.net/usage/options 
 
                 // Uncomment below line("dom" parameter) to fix the dropdown overflow issue in the datatable cells. The default datatable layout
@@ -36,8 +36,8 @@ var TableAjax = function () {
                 "bStateSave": true, // save datatable state(pagination, sort, etc) in cookie.
 
                 "lengthMenu": [
-                    [25, 50, 100, 200, -1],
-                    [25, 50, 100, 200, "Tout"] // change per page values here
+                    [10, 20, 50, 100, 150, -1],
+                    [10, 20, 50, 100, 150, "All"] // change per page values here
                 ],
                 "pageLength": 10, // default record count per page
                 "ajax": {
@@ -63,7 +63,7 @@ var TableAjax = function () {
                 Metronic.alert({
                     type: 'danger',
                     icon: 'warning',
-                    message: 'Veuillez sélectionner une action',
+                    message: 'Please select an action',
                     container: grid.getTableWrapper(),
                     place: 'prepend'
                 });

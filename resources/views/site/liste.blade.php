@@ -32,8 +32,8 @@
             <div class="actions">
                @if(Auth::user()->profil_id == 1 or Stdfn::isActionAutorisee(Auth::user()->id, "ACC_001") or Stdfn::isActionAutorisee(Auth::user()->id, "ACC_002"))
                   <a class="btn btn-success btn-sm mr-5" href="{{ route('ajouter_site') }}"><i class="fa fa-plus-circle"></i> Nouveau site</a>
-                  <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#importerSiteModal">
-                     <i class="fas fa-file-import"></i> Importer des sites
+                  <button type="button" class="btn btn-success btn-sm" data-toggle="modal" data-target="#ImporterSite">
+                     <i class="icon-globe"></i> Importer des sites
                   </button>
                @endif
                <div class="btn-group">
@@ -146,39 +146,4 @@
    </div>
 </div>
 @include('site.modal_importer_site')
-
-<!-- Ajouter le bouton d'importation dans la section appropriée -->
-<div class="modal fade" id="importerSiteModal" tabindex="-1" role="dialog" aria-labelledby="importerSiteModalLabel" aria-hidden="true">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="importerSiteModalLabel">Importer des sites</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <form action="{{ route('save_importer_site') }}" method="POST" enctype="multipart/form-data">
-                @csrf
-                <div class="modal-body">
-                    <div class="form-group">
-                        <label for="fichier">Fichier (Excel) <span class="text-danger">*</span></label>
-                        <input type="file" class="form-control @error('fichier') is-invalid @enderror" id="fichier" name="fichier" accept=".xlsx,.xls">
-                        @error('fichier')
-                            <span class="invalid-feedback" role="alert">
-                                <strong>{{ $message }}</strong>
-                            </span>
-                        @enderror
-                        <small class="form-text text-muted">
-                            Le fichier doit contenir les colonnes suivantes : Site IHS, Site Name, Region, Zone, Operateur, Priority IHS, Topology / Typology, SBC
-                        </small>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Fermer</button>
-                    <button type="submit" class="btn btn-primary">Importer</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
 @endsection

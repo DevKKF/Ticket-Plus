@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
 use App\Models\Region;
 use App\Models\TypeAction;
@@ -15,6 +16,7 @@ use App\Models\TopologieTypologie;
 use App\Models\Site;
 use App\Models\SiteUser;
 use App\Models\Ticket;
+use App\Models\ActionTicket;
 use App\Models\User;
 use App\Models\HistoriqueTicket;
 

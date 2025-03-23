@@ -39,7 +39,7 @@ var Datatable = function() {
                 filterApplyAction: "filter",
                 filterCancelAction: "filter_cancel",
                 resetGroupActionInputOnSuccess: true,
-                loadingMessage: 'Chargement...',
+                loadingMessage: 'Loading...',
                 dataTable: {
                     "dom": "<'row'<'col-md-8 col-sm-12'pli><'col-md-4 col-sm-12'<'table-group-actions pull-right'>>r><'table-scrollable't><'row'<'col-md-8 col-sm-12'pli><'col-md-4 col-sm-12'>>", // datatable layout
                     "pageLength": 10, // default records per page
@@ -51,9 +51,9 @@ var Datatable = function() {
                         // data tables spesific
                         "lengthMenu": "<span class='seperator'>|</span>View _MENU_ records",
                         "info": "<span class='seperator'>|</span>Found total _TOTAL_ records",
-                        "infoEmpty": "Aucun enregistrement trouvé à afficher",
-                        "emptyTable": "Aucune donnée disponible",
-                        "zeroRecords": "Aucun enregistrements correspondants trouvés",
+                        "infoEmpty": "No records found to show",
+                        "emptyTable": "No data available in table",
+                        "zeroRecords": "No matching records found",
                         "paginate": {
                             "previous": "Prev",
                             "next": "Next",

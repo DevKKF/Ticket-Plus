@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
    <head>
       <meta charset="utf-8"/>
       <title>{{ config('app.name') }} | @yield('title')</title>
@@ -24,26 +24,27 @@
       <link href="{{ asset('assets/admin/layout2/css/custom.css') }}" rel="stylesheet" type="text/css"/>
 
       <link href="{{ asset('assets/css/toastr.css') }}" rel="stylesheet" type="text/css"/>
-
       <link href="{{ asset('assets/global/plugins/icheck/skins/all.css') }}" rel="stylesheet"/>
-
-     <link href="{{ asset('assets/global/plugins/bootstrap-markdown/css/bootstrap-markdown.min.css') }}" rel="stylesheet" type="text/css">
+      <link href="{{ asset('assets/global/plugins/bootstrap-markdown/css/bootstrap-markdown.min.css') }}" rel="stylesheet" type="text/css">
       <link href="{{ asset('assets/global/plugins/bootstrap-datepicker/css/bootstrap-datepicker3.min.css') }}" rel="stylesheet" type="text/css">
+
+      <link href="{{ asset('assets/admin/pages/css/profile.css') }}" rel="stylesheet" type="text/css"/>
+      <link href="{{ asset('assets/admin/pages/css/tasks.css') }}" rel="stylesheet" type="text/css"/>
+      <link href="{{ asset('assets/admin/pages/css/search.css') }}" rel="stylesheet" type="text/css"/>
+      <link href="{{ asset('assets/css/style.css') }}" rel="stylesheet" type="text/css"/>
+
+      <link rel="stylesheet" type="text/css" href="{{ asset('assets/global/plugins/bootstrap-wysihtml5/bootstrap-wysihtml5.css') }}"/>
+      <link rel="stylesheet" type="text/css" href="{{ asset('assets/global/plugins/bootstrap-markdown/css/bootstrap-markdown.min.css') }}">
+      <link rel="stylesheet" type="text/css" href="{{ asset('assets/global/plugins/bootstrap-summernote/summernote.css') }}">
+
+      <link rel="stylesheet" href="{{ asset('assets/css/krakPopup.css') }}" />
+
+      <script src="{{asset('assets/js/boite_dialogue.js') }}"></script>
+      <script src="{{asset('assets/js/ticket-plus.js') }}"></script>
 
       <script src="{{ asset('assets/global/plugins/jquery.min.js') }}" type="text/javascript"></script>
       <script src="{{ asset('assets/js/sweetalert2@11.js') }}"></script>
       <script src="{{ asset('assets/js/toastr.min.js') }}"></script>
-
-      <link href="{{ asset('assets/admin/pages/css/profile.css') }}" rel="stylesheet" type="text/css"/>
-      <link href="{{ asset('assets/admin/pages/css/tasks.css') }}" rel="stylesheet" type="text/css"/>
-
-      <link href="{{ asset('assets/admin/pages/css/search.css') }}" rel="stylesheet" type="text/css"/>
-      
-      <link href="{{ asset('assets/css/style.css') }}" rel="stylesheet" type="text/css"/>
-
-      <link rel="stylesheet" href="{{ asset('assets/css/krakPopup.css')}}" />
-      <script src="{{asset('assets/js/boite_dialogue.js') }}"></script>
-      <script src="{{asset('assets/js/ticket-plus.js') }}"></script>
 
 
       <script src="{{ asset('assets/js/highcharts.js') }}"></script>
@@ -79,294 +80,24 @@
             <div class="page-top">
                <div class="top-menu">
                   <ul class="nav navbar-nav pull-right">
-                     <!--li class="dropdown dropdown-extended dropdown-notification" id="header_notification_bar">
+
+                     <li class="dropdown dropdown-extended dropdown-notification" id="header_notification_bar">
                         <a href="javascript:;" class="dropdown-toggle" data-toggle="dropdown" data-hover="dropdown" data-close-others="true">
-                        <i class="icon-bell"></i>
-                        <span class="badge badge-default">
-                        7 </span>
+                           <i class="icon-bell"></i>
+                           <span class="badge badge-default" id="notification-count">0</span>
                         </a>
                         <ul class="dropdown-menu">
                            <li class="external">
-                              <h3><span class="bold">12 nouvelles</span> demandes</h3>
-                              <a href="extra_profile.html">Tout voir</a>
+                                 <h3><span class="bold"><span id="notification-count-title">0</span> nouvelle(s)</span> demandes</h3>
+                                 <a href="{{ route('liste_des_demandes') }}">Tout voir</a>
                            </li>
                            <li>
-                              <ul class="dropdown-menu-list scroller" style="height: 250px;" data-handle-color="#637283">
-                                 <li>
-                                    <a href="javascript:;">
-                                    <span class="time">just now</span>
-                                    <span class="details">
-                                    <span class="label label-sm label-icon label-success">
-                                    <i class="fa fa-plus"></i>
-                                    </span>
-                                    New user registered. </span>
-                                    </a>
-                                 </li>
-                                 <li>
-                                    <a href="javascript:;">
-                                    <span class="time">3 mins</span>
-                                    <span class="details">
-                                    <span class="label label-sm label-icon label-danger">
-                                    <i class="fa fa-bolt"></i>
-                                    </span>
-                                    Server #12 overloaded. </span>
-                                    </a>
-                                 </li>
-                                 <li>
-                                    <a href="javascript:;">
-                                    <span class="time">10 mins</span>
-                                    <span class="details">
-                                    <span class="label label-sm label-icon label-warning">
-                                    <i class="fa fa-bell-o"></i>
-                                    </span>
-                                    Server #2 not responding. </span>
-                                    </a>
-                                 </li>
-                                 <li>
-                                    <a href="javascript:;">
-                                    <span class="time">14 hrs</span>
-                                    <span class="details">
-                                    <span class="label label-sm label-icon label-info">
-                                    <i class="fa fa-bullhorn"></i>
-                                    </span>
-                                    Application error. </span>
-                                    </a>
-                                 </li>
-                                 <li>
-                                    <a href="javascript:;">
-                                    <span class="time">2 days</span>
-                                    <span class="details">
-                                    <span class="label label-sm label-icon label-danger">
-                                    <i class="fa fa-bolt"></i>
-                                    </span>
-                                    Database overloaded 68%. </span>
-                                    </a>
-                                 </li>
-                                 <li>
-                                    <a href="javascript:;">
-                                    <span class="time">3 days</span>
-                                    <span class="details">
-                                    <span class="label label-sm label-icon label-danger">
-                                    <i class="fa fa-bolt"></i>
-                                    </span>
-                                    A user IP blocked. </span>
-                                    </a>
-                                 </li>
-                                 <li>
-                                    <a href="javascript:;">
-                                    <span class="time">4 days</span>
-                                    <span class="details">
-                                    <span class="label label-sm label-icon label-warning">
-                                    <i class="fa fa-bell-o"></i>
-                                    </span>
-                                    Storage Server #4 not responding dfdfdfd. </span>
-                                    </a>
-                                 </li>
-                                 <li>
-                                    <a href="javascript:;">
-                                    <span class="time">5 days</span>
-                                    <span class="details">
-                                    <span class="label label-sm label-icon label-info">
-                                    <i class="fa fa-bullhorn"></i>
-                                    </span>
-                                    System Error. </span>
-                                    </a>
-                                 </li>
-                                 <li>
-                                    <a href="javascript:;">
-                                    <span class="time">9 days</span>
-                                    <span class="details">
-                                    <span class="label label-sm label-icon label-danger">
-                                    <i class="fa fa-bolt"></i>
-                                    </span>
-                                    Storage server failed. </span>
-                                    </a>
-                                 </li>
-                              </ul>
+                                 <ul class="dropdown-menu-list scroller" style="height: 250px; overflow-y: auto" data-handle-color="#637283" id="notification-items">
+                                 </ul>
                            </li>
                         </ul>
-                     </!li>
-                     <li-- class="dropdown dropdown-extended dropdown-inbox" id="header_inbox_bar">
-                        <a href="javascript:;" class="dropdown-toggle" data-toggle="dropdown" data-hover="dropdown" data-close-others="true">
-                        <i class="icon-envelope-open"></i>
-                        <span class="badge badge-default">
-                        4 </span>
-                        </a>
-                        <ul class="dropdown-menu">
-                           <li class="external">
-                              <h3><span class="bold">7 Nouveaux</span> Messages</h3>
-                              <a href="page_inbox.html">Tout voir</a>
-                           </li>
-                           <li>
-                              <ul class="dropdown-menu-list scroller" style="height: 275px;" data-handle-color="#637283">
-                                 <li>
-                                    <a href="inbox.html?a=view">
-                                    <span class="photo">
-                                    <img src="{{ asset('assets/admin/layout2/img/avatar3.jpg') }}" class="img-circle" alt="">
-                                    </span>
-                                    <span class="subject">
-                                    <span class="from">
-                                    Lisa Wong </span>
-                                    <span class="time">Just Now </span>
-                                    </span>
-                                    <span class="message">
-                                    Vivamus sed auctor nibh congue nibh. auctor nibh auctor nibh... </span>
-                                    </a>
-                                 </li>
-                                 <li>
-                                    <a href="inbox.html?a=view">
-                                    <span class="photo">
-                                    <img src="{{ asset('assets/admin/layout2/img/avatar3.jpg') }}" class="img-circle" alt="">
-                                    </span>
-                                    <span class="subject">
-                                    <span class="from">
-                                    Richard Doe </span>
-                                    <span class="time">16 mins </span>
-                                    </span>
-                                    <span class="message">
-                                    Vivamus sed congue nibh auctor nibh congue nibh. auctor nibh auctor nibh... </span>
-                                    </a>
-                                 </li>
-                                 <li>
-                                    <a href="inbox.html?a=view">
-                                    <span class="photo">
-                                    <img src="{{ asset('assets/admin/layout2/img/avatar3.jpg') }}" class="img-circle" alt="">
-                                    </span>
-                                    <span class="subject">
-                                    <span class="from">
-                                    Bob Nilson </span>
-                                    <span class="time">2 hrs </span>
-                                    </span>
-                                    <span class="message">
-                                    Vivamus sed nibh auctor nibh congue nibh. auctor nibh auctor nibh... </span>
-                                    </a>
-                                 </li>
-                                 <li>
-                                    <a href="inbox.html?a=view">
-                                    <span class="photo">
-                                    <img src="{{ asset('assets/admin/layout2/img/avatar3.jpg') }}" class="img-circle" alt="">
-                                    </span>
-                                    <span class="subject">
-                                    <span class="from">
-                                    Lisa Wong </span>
-                                    <span class="time">40 mins </span>
-                                    </span>
-                                    <span class="message">
-                                    Vivamus sed auctor 40% nibh congue nibh... </span>
-                                    </a>
-                                 </li>
-                                 <li>
-                                    <a href="inbox.html?a=view">
-                                    <span class="photo">
-                                    <img src="{{ asset('assets/admin/layout2/img/avatar3.jpg') }}" class="img-circle" alt="">
-                                    </span>
-                                    <span class="subject">
-                                    <span class="from">
-                                    Richard Doe </span>
-                                    <span class="time">46 mins </span>
-                                    </span>
-                                    <span class="message">
-                                    Vivamus sed congue nibh auctor nibh congue nibh. auctor nibh auctor nibh... </span>
-                                    </a>
-                                 </li>
-                              </ul>
-                           </li>
-                        </ul>
-                     </li-->
-                     <!--li class="dropdown dropdown-extended dropdown-tasks" id="header_task_bar">
-                        <a href="javascript:;" class="dropdown-toggle" data-toggle="dropdown" data-hover="dropdown" data-close-others="true">
-                        <i class="icon-calendar"></i>
-                        <span class="badge badge-default">
-                        3 </span>
-                        </a>
-                        <ul class="dropdown-menu extended tasks">
-                           <li class="external">
-                              <h3>You have <span class="bold">12 pending</span> tasks</h3>
-                              <a href="page_todo.html">view all</a>
-                           </li>
-                           <li>
-                              <ul class="dropdown-menu-list scroller" style="height: 275px;" data-handle-color="#637283">
-                                 <li>
-                                    <a href="javascript:;">
-                                    <span class="task">
-                                    <span class="desc">New release v1.2 </span>
-                                    <span class="percent">30%</span>
-                                    </span>
-                                    <span class="progress">
-                                    <span style="width: 40%;" class="progress-bar progress-bar-success" aria-valuenow="40" aria-valuemin="0" aria-valuemax="100"><span class="sr-only">40% Complete</span></span>
-                                    </span>
-                                    </a>
-                                 </li>
-                                 <li>
-                                    <a href="javascript:;">
-                                    <span class="task">
-                                    <span class="desc">Application deployment</span>
-                                    <span class="percent">65%</span>
-                                    </span>
-                                    <span class="progress">
-                                    <span style="width: 65%;" class="progress-bar progress-bar-danger" aria-valuenow="65" aria-valuemin="0" aria-valuemax="100"><span class="sr-only">65% Complete</span></span>
-                                    </span>
-                                    </a>
-                                 </li>
-                                 <li>
-                                    <a href="javascript:;">
-                                    <span class="task">
-                                    <span class="desc">Mobile app release</span>
-                                    <span class="percent">98%</span>
-                                    </span>
-                                    <span class="progress">
-                                    <span style="width: 98%;" class="progress-bar progress-bar-success" aria-valuenow="98" aria-valuemin="0" aria-valuemax="100"><span class="sr-only">98% Complete</span></span>
-                                    </span>
-                                    </a>
-                                 </li>
-                                 <li>
-                                    <a href="javascript:;">
-                                    <span class="task">
-                                    <span class="desc">Database migration</span>
-                                    <span class="percent">10%</span>
-                                    </span>
-                                    <span class="progress">
-                                    <span style="width: 10%;" class="progress-bar progress-bar-warning" aria-valuenow="10" aria-valuemin="0" aria-valuemax="100"><span class="sr-only">10% Complete</span></span>
-                                    </span>
-                                    </a>
-                                 </li>
-                                 <li>
-                                    <a href="javascript:;">
-                                    <span class="task">
-                                    <span class="desc">Web server upgrade</span>
-                                    <span class="percent">58%</span>
-                                    </span>
-                                    <span class="progress">
-                                    <span style="width: 58%;" class="progress-bar progress-bar-info" aria-valuenow="58" aria-valuemin="0" aria-valuemax="100"><span class="sr-only">58% Complete</span></span>
-                                    </span>
-                                    </a>
-                                 </li>
-                                 <li>
-                                    <a href="javascript:;">
-                                    <span class="task">
-                                    <span class="desc">Mobile development</span>
-                                    <span class="percent">85%</span>
-                                    </span>
-                                    <span class="progress">
-                                    <span style="width: 85%;" class="progress-bar progress-bar-success" aria-valuenow="85" aria-valuemin="0" aria-valuemax="100"><span class="sr-only">85% Complete</span></span>
-                                    </span>
-                                    </a>
-                                 </li>
-                                 <li>
-                                    <a href="javascript:;">
-                                    <span class="task">
-                                    <span class="desc">New UI release</span>
-                                    <span class="percent">38%</span>
-                                    </span>
-                                    <span class="progress progress-striped">
-                                    <span style="width: 38%;" class="progress-bar progress-bar-important" aria-valuenow="18" aria-valuemin="0" aria-valuemax="100"><span class="sr-only">38% Complete</span></span>
-                                    </span>
-                                    </a>
-                                 </li>
-                              </ul>
-                           </li>
-                        </ul>
-                     </li-->
+                     </li>
+
                      <li class="dropdown dropdown-user">
                         <a href="javascript:;" class="dropdown-toggle" data-toggle="dropdown" data-hover="dropdown" data-close-others="true">
                            @if(Auth::user()->user_photo)
@@ -439,7 +170,7 @@
                      </li>
                      @endif 
                      @if(Auth::user()->profil_id == 1 or Stdfn::isActionAutorisee(Auth::user()->id, "ACC_001") or Stdfn::isActionAutorisee(Auth::user()->id, "ACC_003") or Stdfn::isActionAutorisee(Auth::user()->id, "ACC_006"))
-                        <li class="@if(substr($_SERVER['REQUEST_URI'], 0,  35) == '/gestion-des-tickets/details-ticket' or substr($_SERVER['REQUEST_URI'], 0,  36) == '/gestion-des-tickets/modifier-ticket') active @endif {{Request::is('gestion-des-tickets/ajouter-un-ticket', 'gestion-des-tickets/liste-des-tickets', 'gestion-des-tickets/ticket-pm', 'gestion-des-tickets/ticket-cm', '', '', '', '') ? 'active open' : ''}}">
+                        <li class="@if(substr($_SERVER['REQUEST_URI'], 0,  35) == '/gestion-des-tickets/details-ticket' or substr($_SERVER['REQUEST_URI'], 0,  36) == '/gestion-des-tickets/modifier-ticket' or substr($_SERVER['REQUEST_URI'], 0,  46) == '/gestion-des-tickets/details-historique-ticket') active @endif {{Request::is('gestion-des-tickets/ajouter-un-ticket', 'gestion-des-tickets/liste-des-tickets', 'gestion-des-tickets/ticket-pm', 'gestion-des-tickets/ticket-cm', 'gestion-des-tickets/autres-tickets', '', '', '') ? 'active open' : ''}}">
                            <a href="javascript:;">
                            <i class="icon-drawer"></i>
                            <span class="title">Gestion des tickets</span>
@@ -496,7 +227,7 @@
                         </ul>
                      </li>
                      @if(Auth::user()->profil_id == 1)
-                        <li class="@if(substr($_SERVER['REQUEST_URI'], 0,  00) == '/') active @endif {{Request::is('gestion-des-parametres/zones', 'gestion-des-parametres/regions', 'gestion-des-parametres/types-actions', 'gestion-des-parametres/operateurs', 'gestion-des-parametres/priorites-ihs', 'gestion-des-parametres/topologies-typologies', '', '') ? 'active open' : ''}}">
+                        <li class="@if(substr($_SERVER['REQUEST_URI'], 0,  00) == '/') active @endif {{Request::is('gestion-des-parametres/zones', 'gestion-des-parametres/regions', 'gestion-des-parametres/types-actions', 'gestion-des-parametres/operateurs', 'gestion-des-parametres/priorites-ihs', 'gestion-des-parametres/topologies-typologies', 'gestion-des-parametres/actions-tickets', '') ? 'active open' : ''}}">
                            <a href="javascript:;">
                            <i class="icon-settings"></i>
                            <span class="title">Gestion des paramètres</span>
@@ -521,6 +252,9 @@
                               </li>
                               <li class="{{Request::is('gestion-des-parametres/topologies-typologies') ? 'active' : ''}}">
                                  <a href="{{ route('gestion_topologie_typologie') }}">Topologies / Typologies</a>
+                              </li>
+                              <li class="{{Request::is('gestion-des-parametres/actions-tickets') ? 'active' : ''}}">
+                                 <a href="{{ route('gestion_action_ticket') }}">Actions Tickets</a>
                               </li>
                            </ul>
                         </li>
@@ -563,6 +297,11 @@
       <script src="{{ asset('assets/global/plugins/bootstrap-markdown/js/bootstrap-markdown.js') }}" type="text/javascript" ></script>
       <script src="{{ asset('assets/global/plugins/bootstrap-markdown/lib/markdown.js') }}" type="text/javascript" ></script>
 
+      
+      <script src="{{ asset('assets/global/plugins/bootstrap-wysihtml5/wysihtml5-0.3.0.js') }}" type="text/javascript"></script>
+      <script src="{{ asset('assets/global/plugins/bootstrap-wysihtml5/bootstrap-wysihtml5.js') }}" type="text/javascript"></script>
+      <script src="{{ asset('assets/global/plugins/bootstrap-summernote/summernote.min.js') }}" type="text/javascript"></script>
+
       <script src="{{ asset('assets/global/plugins/jquery-validation/js/jquery.validate.min.js') }}" type="text/javascript"></script>
       <script src="{{ asset('assets/global/plugins/jquery-validation/js/additional-methods.min.js') }}" type="text/javascript"></script>
       <script src="{{ asset('assets/global/plugins/bootstrap-wizard/jquery.bootstrap.wizard.min.js') }}" type="text/javascript"></script>
@@ -579,6 +318,9 @@
       <script src="{{ asset('assets/global/plugins/bootstrap-fileinput/bootstrap-fileinput.js') }}" type="text/javascript"></script>
       <script src="{{ asset('assets/global/plugins/jquery.sparkline.min.js') }}" type="text/javascript"></script>
       <script src="{{ asset('assets/admin/pages/scripts/profile.js') }}" type="text/javascript"></script>
+      <script src="{{ asset('assets/admin/pages/scripts/components-editors.js') }}"></script>
+
+      <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
       <script>
          jQuery(document).ready(function() {  
@@ -591,6 +333,7 @@
             Profile.init();
             Todo.init();
             FormValidation.init();
+            ComponentsEditors.init();
          });
       </script>
 
@@ -644,6 +387,48 @@
       <script src="{{ asset('assets/js/noty/layouts/top.js') }}"></script>
       <script src="{{ asset('assets/js/noty/layouts/center.js') }}"></script>
       <script src="{{ asset('assets/js/noty/themes/default.js') }}"></script>
+
+      <script>
+         $(document).ready(function() {
+            function checkNotifications() {
+               $.ajax({
+                     url: '/api/notifications',
+                     type: 'GET',
+                     success: function(response) {
+                        $('#notification-count').text(response.count);
+                        $('#notification-count-title').text(response.count);
+                        $('#notification-items').empty();
+
+                        if (response.count > 0) {
+                           response.notifications.forEach(function(notification) { // Utilisez 'notifications'
+                                 $('#notification-items').append(`
+                                    <li>
+                                       <a href="${notification.details}" class="notification-item">
+                                          <span class="time" style="font-size:9px !important">${notification.temps}</span>
+                                          <span class="details">
+                                             <span class="label label-sm label-icon label-success">
+                                                <i class="fa fa-bullhorn"></i>
+                                             </span>
+                                             <span class="notification-text" style="font-size:11px !important">${notification.titre}</span>
+                                          </span>
+                                       </a>
+                                    </li>
+                                 `);
+                           });
+                        } else {
+                           $('#notification-items').html('<li><a>Aucune nouvelle demande.</a></li>');
+                        }
+                     },
+                     error: function() {
+                        console.error('Erreur lors de la récupération des notifications.');
+                     }
+               });
+            }
+
+            checkNotifications();
+            setInterval(checkNotifications, 60000);
+         });
+      </script>
 
       <input type="hidden" id="eco_base_url" name="eco_base_url" value="{{ Request::isSecure() ? 'https://' : 'http://' }}{{ $_SERVER['HTTP_HOST'] }}/">
    </body>

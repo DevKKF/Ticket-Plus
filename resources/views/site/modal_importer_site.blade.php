@@ -12,6 +12,12 @@
                         <label>Fichier (Excel) <span class="text-danger">*</span></label>
                         <input type="file" name="fichier" id="fichier" class="form-control" accept=".xlsx" required>
                     </div> 
+                    <div class="form-group">
+                        <label>Exemple de fichier (Excel) à charger</label>
+                        <div style="overflow-x: auto; max-width: 100%;">
+                            <img src="{{ asset('assets/admin/images/capture/excel_export.png') }}" alt="" style="min-width: 800px;">
+                        </div>
+                    </div>
                 </div> 
                 <div class="modal-footer">
                     <button type="button" class="btn btn-danger" style="float: left !important;" data-dismiss="modal" style=""><i class="fa fa-remove"></i> Fermer</button>

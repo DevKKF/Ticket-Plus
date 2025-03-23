@@ -56,18 +56,18 @@
     @csrf
     <h3 class="form-title uppercase" style="font-size: 22px;">Connexion</h3>
     @if (session('echec'))
-        <div id="prefix_1152407560663" class="Metronic-alerts alert alert-danger fade in"><button type="button" class="close" data-dismiss="alert" aria-hidden="true"></button>{{ session('echec') }}</div>
+        <div class="alert alert-danger"><button type="button" class="close" data-dismiss="alert" aria-hidden="true"></button>{{ session('echec') }}</div>
     @endif
     <div class="form-group">
         <label class="control-label visible-ie8 visible-ie9">Login</label>
-        <input class="form-control form-control-solid placeholder-no-fix @error('login') is-invalid @enderror" type="text" placeholder="Login" name="login" value="{{ old('login') }}">
+        <input class="form-control form-control-solid placeholder-no-fix @error('login') is-invalid @enderror" type="login" placeholder="Login" name="login" value="{{ old('login') }}">
         <span class="error"></span>
         @error('login')
             <span class="invalid-feedback text-danger" role="alert">
                 <strong>{{ $message }}</strong>
             </span>
         @enderror
-    </div>
+    </div> 
     <div class="form-group">
         <label class="control-label visible-ie8 visible-ie9">Mot de passe</label>
         <input class="form-control form-control-solid placeholder-no-fix @error('password') is-invalid @enderror" type="password" placeholder="Mot de passe" name="password">
@@ -78,13 +78,6 @@
             </span>
         @enderror
     </div>
-    <!--div class="form-group d-flex justify-content-between">
-        @if (Route::has('password.request'))
-            <center>
-                <a href="{{ route('password.change') }}" style="margin: auto; font-size: 15px;">Mot de passe oublié</a>
-            </center>
-        @endif
-    </div-->
     <div class="form-actions mt-10" style="">
         <button type="submit" class="btn btn-success btn-block uppercase">Se connecter</button>
     </div>

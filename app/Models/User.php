@@ -28,6 +28,8 @@ class User extends Authenticatable
         'autre_telephone',
         'user_photo',
         'password',
+        'creerpar_id',
+        'modifierpar_id',
     ];
 
     /**

@@ -8,6 +8,7 @@ use App\Http\Controllers\SiteController;
 use App\Http\Controllers\TicketController;
 use App\Http\Controllers\UtilisateurController;
 use App\Http\Controllers\StatistiquesController;
+use App\Http\Controllers\DemandeController;
 use App\Http\Controllers\APIController;
 
 /*
@@ -50,13 +51,21 @@ Route::post('/gestion-des-tickets/save-ticket', [TicketController::class, 'SaveT
 Route::get('/gestion-des-tickets/liste-des-tickets', [TicketController::class, 'ListeTicket'])->name('liste_ticket');
 Route::get('/gestion-des-tickets/ticket-pm', [TicketController::class, 'TicketPM'])->name('ticket_pm');
 Route::get('/gestion-des-tickets/ticket-cm', [TicketController::class, 'TicketCM'])->name('ticket_cm');
+Route::get('/gestion-des-tickets/autres-tickets', [TicketController::class, 'AutresTickets'])->name('autres_tickets');
 Route::get('/gestion-des-tickets/details-ticket/{ticket_id}-{titre}', [TicketController::class, 'DetailsTicket'])->name('details_ticket');
+Route::get('/gestion-des-tickets/details-historique-ticket/{historique_ticket_id}', [TicketController::class, 'HistoriqueDetailsTicket'])->name('details_historique_ticket');
+Route::post('/gestion-des-tickets/save-demande-ticket-action/{ticket_id}', [TicketController::class, 'SaveDemandeActionTicket'])->name('save_demande_action_ticket');
 Route::get('/gestion-des-tickets/modifier-ticket/{ticket_id}', [TicketController::class, 'ModifierTicket'])->name('modifier_ticket');
 Route::post('/gestion-des-tickets/modifier-ticket/{ticket_id}', [TicketController::class, 'SaveModifierTicket'])->name('save_modifier_ticket');
 Route::post('supprimer_ticket', [TicketController::class, 'SupprimerTicket'])->name('supprimer_ticket');
 Route::get('/tickets/export/csv', [TicketController::class, 'exporterCSV'])->name('tickets.export.csv');
 Route::get('/tickets/export/excel', [TicketController::class, 'exporterExcel'])->name('tickets.export.excel');
 Route::get('/tickets/export/pdf', [TicketController::class, 'exporterPDF'])->name('tickets.export.pdf');
+
+
+//DEMANDE
+Route::get('gestion-des-demandes/liste-des-demandes', [DemandeController::class, 'ListeDesDemandes'])->name('liste_des_demandes');
+Route::get('gestion-des-demandes/details-demande/{demande_code}', [DemandeController::class, 'DetailsDemande'])->name('details_demande');
 
 //UTILISATEUR
 Route::get('/gestion-des-utilisateurs/ajouter-un-utilisateur', [UtilisateurController::class, 'AjouterUtilisateur'])->name('ajouter_utilisateur');
@@ -104,6 +113,11 @@ Route::post('/gestion-des-parametres/topologies-typologies', [ParametreControlle
 Route::post('/gestion-des-parametres/topologie-typologie/{topologie_typologie_id}', [ParametreController::class, 'ModifierTopologieTypologie'])->name('modifier_topologie_typologie');
 Route::post('supprimer_topologie_typologie', [ParametreController::class, 'SupprimerTopologieTypologie'])->name('supprimer_topologie_typologie');
 
+Route::get('/gestion-des-parametres/actions-tickets', [ParametreController::class, 'GestionActionTicket'])->name('gestion_action_ticket');
+Route::post('/gestion-des-parametres/actions-ticket', [ParametreController::class, 'SaveActionTicket'])->name('save_action_ticket');
+Route::post('/gestion-des-parametres/modifier-action-ticket/{action_ticket_id}', [ParametreController::class, 'ModifierActionTicket'])->name('modifier_action_ticket');
+Route::post('supprimer_action_ticket', [ParametreController::class, 'SupprimerActionTicket'])->name('supprimer_action_ticket');
+
 
 //API
 Route::get('/chargement/region/{region_id}/zone', [APIController::class, 'ChargementRegionZone'])->name('chargement_region_zone');
@@ -113,12 +127,20 @@ Route::post('/action/update-statut/{id}', [APIController::class, 'updateStatut']
 Route::get('/chargement/site/{site_id}/info', [APIController::class, 'ChargementSiteInfo'])->name('chargement_site_info');
 Route::get('/chargement/users/{site_id}/site', [APIController::class, 'ChargementUserSite'])->name('chargement_user_site');
 Route::post('chargement/ajax_statistiques_journaliere', [APIController::class, 'AjaxStatistiqueJournaliere'])->name('ajax_statistiques_journaliere');
+Route::get('/api/notifications', [APIController::class, 'getNotifications']);
 
 //CHANGER MOT DE PASSE
 Route::get('mot-de-passe-oublie', [ChangerPasswordController::class, 'ChangePassword'])->name('password.change');
 Route::post('changer/mot-de-passe/save', [ChangerPasswordController::class, 'ChangePasswordSave'])->name('password.email.change');
 Route::get('password/change/email/{token}', [ChangerPasswordController::class, 'ChangePasswordForm'])->name('password-change-save');
 Route::post('password/change/email/update', [ChangerPasswordController::class, 'ChangePasswordFinalSave'])->name('password.update.save');
+
+
+/*Route::get('/api/notifications', function () {
+    $demandes = \App\Models\Demande::join('users', 'users.id', 'demande.user_id')->where('demande_consulter', 'NON')->get();
+    return response()->json(['count' => $demandes->count(), 'demandes' => $demandes]);
+});*/
+
 
 
 

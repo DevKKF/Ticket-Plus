@@ -6,7 +6,9 @@
 Login page
 ***/
 /* bg color */
-
+.login {
+  background-color: #364150 !important;
+}
 
 .login .logo {
   margin: 0 auto;
@@ -34,7 +36,7 @@ Login page
   color: #191F55;
   text-align: center;
   font-size: 28px;
-  font-weight: bold !important;
+  font-weight: bold !important;;
 }
 
 .login .content h4 {

@@ -430,6 +430,49 @@
 
 		});
 
+		//Added on 22032025
+		$('.btnSupprimerActionTicket').click(function(){
+
+			var action_ticket_id = $(this).attr('data-action_ticket_id');
+
+			noty({
+				dismissQueue: false,
+				force: true,
+				layout:'center',
+				modal: true,
+				theme: 'defaultTheme',
+				text:"Voulez-vous vraiment supprimer cette action ticket ?",
+				type: 'warning',
+				buttons: [
+					{addClass: 'btn btn-success ', text: 'Oui', onClick: function($noty) {
+				   		$noty.close();
+
+						$.ajax({
+							headers:{'X-CSRF-TOKEN': csrf_token},
+							type:'post',
+							url: base_url + 'supprimer_action_ticket',
+							data: {action_ticket_id:action_ticket_id},
+							success: function(response) {
+								if (response.status === 1) {
+									notification(response.message, "success");
+								} else {
+									notification(response.message, "warning");
+								}
+							},
+							error: function(){
+								notification("Erreur lors du traitement","error");
+							}
+						});
+
+				   	}},
+				   	{addClass: 'btn btn-danger ', text: 'Non', onClick: function($noty) {
+				   		$noty.close();
+				   	}}]
+			});
+
+
+		});
+
 		//NOTY
 		function notification(text,type,callback){
 

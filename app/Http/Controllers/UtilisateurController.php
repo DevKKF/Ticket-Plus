@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Facades\Excel;
+use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
 use App\Models\Region;
 use App\Models\TypeAction;
@@ -21,6 +22,7 @@ use App\Models\Profil;
 use App\Models\SiteUser;
 use App\Models\User;
 use App\Models\Ticket;
+use App\Models\ActionTicket;
 
 use App\Imports\UtilisateurImport;
 

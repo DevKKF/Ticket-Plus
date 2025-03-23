@@ -56,39 +56,6 @@
                                 <span class="btnSupprimerRegion" data-region_id="{{ $region->region_id }}" title="Supprimer"><img src="{{ asset('assets/admin/images/icon/supprimer.png') }}" width="20"></span>
                             </td> 
                         </tr>
-
-                        <div class="modal fade" id="EditRegion{{ $region->region_id }}" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
-                            <div class="modal-dialog">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true"></button>
-                                        <h4 class="modal-title">Modifier la région</h4>
-                                    </div>
-                                    <form method="POST" action="{{ route('modifier_region', $region->region_id) }}" enctype="multipart/form-data">
-                                        @csrf
-                                        <div class="modal-body"> 
-                                            <div class="form-group">
-                                                <label>Nom de la région <span class="text-danger">*</span></label>
-                                                <input type="text" name="nom" id="nom" class="form-control" value="{{ $region->region_nom }}" required>
-                                            </div> 
-                                            <div class="form-group">
-                                                <label>Statut <span class="text-danger">*</span></label>
-                                                <select name="statut" id="statut" class="form-control" required>
-                                                    <option value="">Choisir</option>
-                                                    <option value="BROUILLON" {{ $region->region_statut == 'BROUILLON' ? 'selected' : '' }}>BROUILLON</option>
-                                                    <option value="VALIDE" {{ $region->region_statut == 'VALIDE' ? 'selected' : '' }}>VALIDE</option>
-                                                </select>
-                                            </div>   
-                                        </div>
-                                        <div class="modal-footer">
-                                            <button type="button" class="btn btn-danger" style="float: left !important;" data-dismiss="modal" style=""><i class="fa fa-remove"></i> Fermer</button>
-                                            <button type="submit" class="btn btn-success" style="float: right !important;" id="formSubmit"><i class="fa fa-check-circle"></i> Enregistrer</button>
-                                        </div>
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
-
                     @endforeach   
                 </tbody>
             </table>
@@ -96,6 +63,40 @@
       </div>
    </div>
 </div>
+
+@foreach($regions as $region)
+    <div class="modal fade" id="EditRegion{{ $region->region_id }}" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true"></button>
+                    <h4 class="modal-title">Modifier la région</h4>
+                </div>
+                <form method="POST" action="{{ route('modifier_region', $region->region_id) }}" enctype="multipart/form-data">
+                    @csrf
+                    <div class="modal-body"> 
+                        <div class="form-group">
+                            <label>Nom de la région <span class="text-danger">*</span></label>
+                            <input type="text" name="nom" id="nom" class="form-control" value="{{ $region->region_nom }}" required>
+                        </div> 
+                        <div class="form-group">
+                            <label>Statut <span class="text-danger">*</span></label>
+                            <select name="statut" id="statut" class="form-control" required>
+                                <option value="">Choisir</option>
+                                <option value="BROUILLON" {{ $region->region_statut == 'BROUILLON' ? 'selected' : '' }}>BROUILLON</option>
+                                <option value="VALIDE" {{ $region->region_statut == 'VALIDE' ? 'selected' : '' }}>VALIDE</option>
+                            </select>
+                        </div>   
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-danger" style="float: left !important;" data-dismiss="modal" style=""><i class="fa fa-remove"></i> Fermer</button>
+                        <button type="submit" class="btn btn-success" style="float: right !important;" id="formSubmit"><i class="fa fa-check-circle"></i> Enregistrer</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+@endforeach 
 
 <div class="modal fade" id="AjouterRegion" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
     <div class="modal-dialog">

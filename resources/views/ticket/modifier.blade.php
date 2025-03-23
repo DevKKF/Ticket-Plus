@@ -37,7 +37,7 @@
                 </div>
             </div>
             <div class="portlet-body form">
-                <form  method="POST" action="{{ route('modifier_ticket', $ticket->site_id) }}" enctype="multipart/form-data">
+                <form  method="POST" action="{{ route('modifier_ticket', $ticket->ticket_id) }}" enctype="multipart/form-data">
                     @csrf
                     <div class="form-body">
                         <div class="row">
@@ -145,7 +145,7 @@
                             <div class="col-md-12">
                                 <div class="form-group">
                                     <label>Description d'inventaire d'équipement passif</label>
-                                    <textarea name="description" data-provide="markdown" rows="10" data-error-container="#editor_error">{{ $ticket->ticket_description }}</textarea>
+                                    <textarea name="description" class="form-control" id="summernote_1" rows="6"><?php echo(html_entity_decode($ticket->ticket_description)) ?></textarea>
                                 </div>
                             </div>
                             <hr>
@@ -158,8 +158,7 @@
                     </div>
                 </form>
             </div>
-        </div>
     </div>
 </div>
-<script src="{{asset('assets/js/jquery.js') }}"></script>
 @endsection
+<script src="{{asset('assets/js/jquery.js') }}"></script>

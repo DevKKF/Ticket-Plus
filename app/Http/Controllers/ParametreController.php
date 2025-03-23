@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
 use App\Models\Region;
 use App\Models\TypeAction;
@@ -12,6 +13,7 @@ use App\Models\Operateur;
 use App\Models\PrioriteIHS;
 use App\Models\TopologieTypologie;
 use App\Models\Ticket;
+use App\Models\ActionTicket;
 
 use Stdfn;
 use Carbon\Carbon;
@@ -115,7 +117,7 @@ class ParametreController extends Controller
         }
     }
 
-    //Liste des régions
+    //Liste des types d'action
     public function GestionTypeAction()
     {
 
@@ -584,6 +586,106 @@ class ParametreController extends Controller
         if (!empty($topologie_typologie)) {
 
             $topologie_typologie->delete();
+
+            echo 1;
+        } else {
+            echo 0;
+        }
+    }
+
+    //Liste des actions tickets
+    public function GestionActionTicket()
+    {
+
+        $actionticket = ActionTicket::orderby('action_ticket_id','DESC')->get();
+        
+        //dd($actionticket);
+        return view('parametre.gestion_action_ticket', ['actionticket' => $actionticket]);
+    }
+
+    //Save l'action ticket
+    public function SaveActionTicket(Request $request){
+
+        $validator = Validator::make($request->all(), [
+            'statut' => 'required',
+            'nom' => 'required',
+            'action_ticket_code' => 'required|unique:action_ticket',
+        ], [
+            'statut.required' => "Le statut de l'action ticket est obligatoire.",
+            'nom.required' => "Le nom de l'action ticket est obligatoire.",
+            'action_ticket_code.unique' => "Le code de l'action ticket est déjà utilisé.",
+            'action_ticket_code.required' => "Le code de l'action ticket est obligatoire.",
+        ]);
+        
+        if ($validator->fails()) {
+            return back()
+                ->withErrors($validator)
+                ->withInput();
+        }
+
+        $action_ticket = new ActionTicket();
+
+        $action_ticket->action_ticket_code      = htmlspecialchars($request->action_ticket_code);
+        $action_ticket->action_ticket_nom       = htmlspecialchars($request->nom);
+        $action_ticket->action_ticket_statut    = htmlspecialchars($request->statut);
+        $action_ticket->action_ticket_datecrea  = gmdate('Y-m-d H:i:s');
+        $action_ticket->save();
+
+        return back()->with('success',"Type action enregsitré avec succès !");
+    }
+
+    //Save Modifier l'action ticket
+    public function ModifierActionTicket(Request $request, $action_ticket_id)
+    {
+
+        $actionticket = ActionTicket::find($action_ticket_id);
+
+        if($actionticket){
+
+            $validator = Validator::make($request->all(), [
+                'statut' => 'required',
+                'nom' => 'required',
+                'action_ticket_code' => 'required|unique:action_ticket,action_ticket_code,' . $actionticket->action_ticket_id . ',action_ticket_id',
+            ], [
+                'statut.required' => "Le statut de l'action ticket est obligatoire.",
+                'nom.required' => "Le nom de l'action ticket est obligatoire.",
+                'action_ticket_code.unique' => "Le code de l'action ticket est déjà utilisé.",
+                'action_ticket_code.required' => "Le code de l'action ticket est obligatoire.",
+            ]);
+
+            if ($validator->fails()) {
+                return back()
+                    ->withErrors($validator)
+                    ->withInput();
+            }
+
+            $actionticket->action_ticket_code     = htmlspecialchars($request->action_ticket_code);
+            $actionticket->action_ticket_nom      = htmlspecialchars($request->nom);
+            $actionticket->action_ticket_statut   = htmlspecialchars($request->statut);
+            $actionticket->exists               = true;
+            $actionticket->update();
+
+            return back()->with('success',"Type action modifié avec succès !");
+
+        }else{
+
+            return back()->with('warning',"Type action non trouvé !");
+
+        }
+
+    }
+
+    //Supprimer l'action ticket
+    public function SupprimerActionTicket(Request $request)
+    {
+
+        $action_ticket_id = $request->action_ticket_id;
+
+        $action_ticket = ActionTicket::find($action_ticket_id);
+
+        if (!empty($action_ticket)) {
+
+            $action_ticket->delete();
 
             echo 1;
         } else {

@@ -26,7 +26,7 @@ var Login = function() {
                 },
                 password: {
                     required: "Mot de passe obligatoire.",
-                    minlength: "Entrer un mot de passe d'au moins 8 caractères.",
+                    minlength: "Entrer un mot de passe d'au moins 6 caractères.",
                 }
             },
 

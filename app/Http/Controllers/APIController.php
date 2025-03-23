@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
 use App\Models\Region;
 use App\Models\TypeAction;
@@ -17,6 +18,7 @@ use App\Models\Profil;
 use App\Models\Site;
 use App\Models\SiteUser;
 use App\Models\Ticket;
+use App\Models\Demande;
 use Carbon\Carbon;
 
 class APIController extends Controller
@@ -137,6 +139,40 @@ class APIController extends Controller
 
         // Retourner les users en JSON
         return response()->json($users);
+    }
+
+    //Notification des demandes
+    public function getNotifications()
+    {
+        $demandes = Demande::join('users', 'users.id', 'demande.user_id')->where('demande_consulter', 'NON')->get();
+
+        $notifications = $demandes->map(function ($demande) {
+            $dateCreation = Carbon::parse($demande->demande_datecrea);
+            $maintenant = Carbon::now();
+
+            // Définir la locale en français
+            Carbon::setLocale('fr');
+            $diffInDays = $dateCreation->diffInDays($maintenant);
+
+            if ($diffInDays > 5) {
+                $temps = $dateCreation->translatedFormat('j F Y'); // Formatage de la date en français
+            } else {
+                $temps = $dateCreation->diffForHumans($maintenant);
+            }
+
+            $details = route('details_demande', $demande->demande_code);
+
+            return [
+                'titre' => $demande->nom_prenoms,
+                'temps' => $temps,
+                'details' => $details,
+            ];
+        });
+
+        return response()->json([
+            'count' => $demandes->count(),
+            'notifications' => $notifications,
+        ]);
     }
         
 }

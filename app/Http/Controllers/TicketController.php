@@ -5,7 +5,10 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Maatwebsite\Excel\Facades\Excel;
+use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 use App\Models\Region;
 use App\Models\TypeAction;
 use App\Models\Zone;
@@ -15,9 +18,16 @@ use App\Models\TopologieTypologie;
 use App\Models\Site;
 use App\Models\SiteUser;
 use App\Models\Ticket;
+use App\Models\ActionTicket;
 use App\Models\HistoriqueTicket;
+use App\Models\Demande;
+
+use App\Exports\TicketExport;
 
 use Stdfn;
+use View;
+use Dompdf\Dompdf;
+use Dompdf\Options;
 use Carbon\Carbon;
 
 class TicketController extends Controller
@@ -175,7 +185,15 @@ class TicketController extends Controller
 		
         $sites = Site::leftjoin('zone', 'zone.zone_id', 'site.zone_id')->where(['site_statut'=>"VALIDE"])->orderby('site_nom','ASC')->get();
 		$typeactions = TypeAction::where(['type_action_statut'=>"VALIDE"])->orderby('type_action_nom','ASC')->get();
+        $actionticket = ActionTicket::where(['action_ticket_statut'=>"VALIDE"])->orderby('action_ticket_id','ASC')->get();
 
+        // Stocker les données de recherche en session
+        Session::put('recherche_data_ticket', [
+            'code' => $code,
+            'site' => $site,
+            'typeaction' => $typeaction,
+            'datedeclaration' => $datedeclaration,
+        ]);
 
 		return view('ticket.liste', [
             'tickets' => $tickets,  
@@ -184,29 +202,65 @@ class TicketController extends Controller
             'selected_code'=>$code,
             'selected_site'=>$site,
             'selected_typeaction'=>$typeaction,
+            'actionticket' => $actionticket,
             'selected_datedeclaration'=>$datedeclaration,
         ]);
 	}
  
     //Détails un ticket
     public function DetailsTicket(Request $request, $ticket_id)
-	{
-        
-        $ticket = Ticket::leftjoin('site', 'site.site_id', 'ticket.site_id')
-                        ->leftjoin('zone', 'zone.zone_id', 'site.zone_id')
-                        ->leftjoin('type_action', 'type_action.type_action_id', 'ticket.type_action_id')
-                        ->find($ticket_id);
+    {
+        $ticket = Ticket::with(['enregistrer_par', 'modifier_par'])
+                        ->leftJoin('site', 'site.site_id', 'ticket.site_id')
+                        ->leftJoin('zone', 'zone.zone_id', 'site.zone_id')
+                        ->leftJoin('type_action', 'type_action.type_action_id', 'ticket.type_action_id')
+                        ->leftJoin('users as createur', 'createur.id', 'ticket.creerpar_id')
+                        ->leftJoin('users as modificateur', 'modificateur.id', 'ticket.modifierpar_id')
+                        ->select('ticket.*', 'site.site_nom', 'zone.zone_nom', 'type_action.type_action_nom',
+                                'createur.nom_prenoms as createur_nom',
+                                'modificateur.nom_prenoms as modificateur_nom')
+                        ->where('ticket.ticket_id', $ticket_id)
+                        ->first();
 
-		if (!empty($ticket)) {
+        if (!empty($ticket)) {
+
+            $historiques = HistoriqueTicket::leftJoin('site', 'site.site_id', 'historique_ticket.site_id')
+                                        ->leftJoin('zone', 'zone.zone_id', 'site.zone_id')
+                                        ->leftJoin('users', 'users.id', 'historique_ticket.user_id')
+                                        ->leftJoin('type_action', 'type_action.type_action_id', 'historique_ticket.type_action_id')
+                                        ->where('historique_ticket.ticket_id', $ticket_id)
+                                        ->get();
 
             return view('ticket.details', [
-                'ticket' => $ticket, 
+                'ticket' => $ticket,
+                'historiques' => $historiques,
             ]);
-
         } else {
             return back()->with('warning', 'Ticket non trouvé !');
         }
-	}
+    }
+
+    //Détails ticket historique
+    public function HistoriqueDetailsTicket(Request $request, $historique_ticket_id)
+    {
+        $historique = HistoriqueTicket::with(['enregistrer_par'])
+                                    ->leftJoin('site', 'site.site_id', 'historique_ticket.site_id')
+                                    ->leftJoin('zone', 'zone.zone_id', 'site.zone_id')
+                                    ->leftJoin('type_action', 'type_action.type_action_id', 'historique_ticket.type_action_id')
+                                    ->leftJoin('users as createur', 'createur.id', 'historique_ticket.user_id')
+                                    ->select('historique_ticket.*', 'site.site_nom', 'zone.zone_nom', 'type_action.type_action_nom',
+                                            'createur.nom_prenoms as createur_nom')
+                                    ->where('historique_ticket.historique_ticket_id', $historique_ticket_id)
+                                    ->first();
+
+        if (!empty($historique)) {
+            return view('ticket.details_historique', [
+                'historique' => $historique,
+            ]);
+        } else {
+            return back()->with('warning', 'Ticket non trouvé !');
+        }
+    }
  
     //Modifier un ticket
     public function ModifierTicket(Request $request, $ticket_id)
@@ -219,10 +273,13 @@ class TicketController extends Controller
             $sites = Site::leftjoin('zone', 'zone.zone_id', 'site.zone_id')->where(['site_statut'=>"VALIDE"])->orderby('site_nom','ASC')->get();
             $typeactions = TypeAction::where(['type_action_statut'=>"VALIDE"])->orderby('type_action_nom','ASC')->get();
 
+            $inventoryDescription = $ticket->ticket_description;
+
             return view('ticket.modifier', [
                 'ticket' => $ticket, 
                 'sites' => $sites, 
                 'typeactions' => $typeactions, 
+                'inventoryDescription' => $inventoryDescription, 
             ]);
 
         } else {
@@ -230,7 +287,6 @@ class TicketController extends Controller
         }
 	}
 
-    //Save Modifier un ticket
     public function SaveModifierTicket(Request $request, $ticket_id)
 	{
         
@@ -275,7 +331,7 @@ class TicketController extends Controller
             $historique_ticket = new HistoriqueTicket();
 
             $historique_ticket->ticket_id                          = $ticket->ticket_id;
-            $historique_ticket->user_id                            = $ticket->user_id;
+            $historique->user_id                                   = Auth::id();
             $historique_ticket->creerpar_id                        = $ticket->creerpar_id;
             $historique_ticket->modifierpar_id                     = $ticket->modifierpar_id;
             $historique_ticket->site_id                            = $ticket->site_id;
@@ -293,7 +349,7 @@ class TicketController extends Controller
             $historique_ticket->historique_ticket_datecrea         = $ticket->ticket_datecrea;
             $historique_ticket->save();
             
-            //Mis à jour de quittance
+            //Mis à jour de ticket
             $ticket->user_id                 = $request->user_id;
             $ticket->modifierpar_id          = Auth::id();
             $ticket->site_id                 = $request->site_id;
@@ -310,6 +366,64 @@ class TicketController extends Controller
             $ticket->save();
     
             return redirect()->route('liste_ticket')->with('success',"Ticket modifié avec succès !");
+
+        } else {
+            return back()->with('warning', 'Ticket non trouvé !');
+        }
+	}
+
+    public function SaveDemandeActionTicket(Request $request, $ticket_id)
+	{
+        
+        $ticket = Ticket::find($ticket_id);
+
+		if (!empty($ticket)) {
+
+            $validator = Validator::make($request->all(), [
+                'description' => 'required',
+                'demande_a_traiter' => 'required',
+                'demande_date' => 'required|date',
+                'action_ticket_id' => 'required',
+            ], [            
+                'description.required' => "La description de la demande est obligatoire.",
+                'demande_a_traiter.required' => "La demande à traiter est obligatoire.",
+                'demande_date.date' => "La date de la demande doit être au format AAAA/JJ/MM.",
+                'demande_date.required' => "La date de la demande est obligatoire.",
+                'action_ticket_id.required' => "Le type d'action est obligatoire.",
+            ]);
+            
+            if ($validator->fails()) {
+                return back()
+                    ->withErrors($validator)
+                    ->withInput();
+            }
+
+            // Générer l'UID
+            $uid = Str::uuid();
+
+            // Récupération de la date du formulaire
+            $dateDemande = Carbon::parse($request->input('demande_date'));
+
+            // Ajout de 3 jours
+            $datePlusTroisJours = $dateDemande->addDays(3);
+
+            //Créer demande
+            $demande = new Demande();
+            
+            $demande->user_id               = Auth::id();
+            $demande->creerpar_id           = Auth::id();
+            $demande->ticket_id             = $ticket->ticket_id;
+            $demande->action_ticket_id      = $request->action_ticket_id;
+            $demande->demande_code          = $uid;
+            $demande->demande_date_delais   = $datePlusTroisJours;
+            $demande->demande_date          = htmlspecialchars($request->demande_date);
+            $demande->demande_a_traiter     = htmlspecialchars($request->demande_a_traiter);
+            $demande->demande_description   = htmlspecialchars($request->description);
+            $demande->demande_datecrea      = gmdate('Y-m-d H:i:s');
+            $demande->demande_statut        = "EN COURS";
+            $demande->save();
+    
+            return back()->with('success',"Demande enregistrée avec succès !");
 
         } else {
             return back()->with('warning', 'Ticket non trouvé !');
@@ -345,7 +459,7 @@ class TicketController extends Controller
         }
 
         if(Auth::user()->profil_id == 1 or Stdfn::isActionAutorisee(Auth::user()->id, "ACC_001") or Stdfn::isActionAutorisee(Auth::user()->id, "ACC_002")){
-            $ticket_pm = Ticket::leftjoin('site', 'site.site_id', 'ticket.site_id')
+            $tickets = Ticket::leftjoin('site', 'site.site_id', 'ticket.site_id')
                                 ->join('type_action', 'type_action.type_action_id', 'ticket.type_action_id')
                                 ->whereBetween('type_action.type_action_code',['PM','PMEX'])
                                 ->whereRaw($whereRaw)
@@ -354,7 +468,7 @@ class TicketController extends Controller
                                 ->get();
 
         }else{
-            $ticket_pm = Ticket::leftjoin('site', 'site.site_id', 'ticket.site_id')
+            $tickets = Ticket::leftjoin('site', 'site.site_id', 'ticket.site_id')
                                 ->join('type_action', 'type_action.type_action_id', 'ticket.type_action_id')
                                 ->where(['ticket.user_id'=>Auth::user()->id])
                                 ->whereBetween('type_action.type_action_code',['PM','PMEX'])
@@ -366,11 +480,21 @@ class TicketController extends Controller
 
         $sites = Site::leftjoin('zone', 'zone.zone_id', 'site.zone_id')->where(['site_statut'=>"VALIDE"])->orderby('site_nom','ASC')->get();
 		$typeactions = TypeAction::where(['type_action_statut'=>"VALIDE"])->orderby('type_action_nom','ASC')->get();
+        $actionticket = ActionTicket::where(['action_ticket_statut'=>"VALIDE"])->orderby('action_ticket_id','ASC')->get();
+
+        // Stocker les données de recherche en session
+        Session::put('recherche_data_ticket', [
+            'code' => $code,
+            'site' => $site,
+            'typeaction' => $typeaction,
+            'datedeclaration' => $datedeclaration,
+        ]);
 
         return view('ticket.ticket_pm',[ 
-            'ticket_pm' => $ticket_pm, 
+            'tickets' => $tickets, 
             'sites' => $sites, 
             'typeactions' => $typeactions, 
+            'actionticket' => $actionticket,
             'selected_code'=>$code,
             'selected_site'=>$site,
             'selected_typeaction'=>$typeaction,
@@ -408,7 +532,7 @@ class TicketController extends Controller
         }
 
         if(Auth::user()->profil_id == 1 or Stdfn::isActionAutorisee(Auth::user()->id, "ACC_001") or Stdfn::isActionAutorisee(Auth::user()->id, "ACC_002")){
-            $ticket_cm = Ticket::leftjoin('site', 'site.site_id', 'ticket.site_id')
+            $tickets = Ticket::leftjoin('site', 'site.site_id', 'ticket.site_id')
                                 ->join('type_action', 'type_action.type_action_id', 'ticket.type_action_id')
                                 ->whereBetween('type_action.type_action_code',['CM','MC'])
                                 ->whereRaw($whereRaw)
@@ -418,7 +542,7 @@ class TicketController extends Controller
 
         }else{
 
-            $ticket_cm = Ticket::leftjoin('site', 'site.site_id', 'ticket.site_id')
+            $tickets = Ticket::leftjoin('site', 'site.site_id', 'ticket.site_id')
                                 ->join('type_action', 'type_action.type_action_id', 'ticket.type_action_id')
                                 ->where(['ticket.user_id'=>Auth::user()->id])
                                 ->whereBetween('type_action.type_action_code',['CM','MC'])
@@ -431,11 +555,96 @@ class TicketController extends Controller
 
         $sites = Site::leftjoin('zone', 'zone.zone_id', 'site.zone_id')->where(['site_statut'=>"VALIDE"])->orderby('site_nom','ASC')->get();
 		$typeactions = TypeAction::where(['type_action_statut'=>"VALIDE"])->orderby('type_action_nom','ASC')->get();
+        $actionticket = ActionTicket::where(['action_ticket_statut'=>"VALIDE"])->orderby('action_ticket_id','ASC')->get();
+
+        // Stocker les données de recherche en session
+        Session::put('recherche_data_ticket', [
+            'code' => $code,
+            'site' => $site,
+            'typeaction' => $typeaction,
+            'datedeclaration' => $datedeclaration,
+        ]);
 
         return view('ticket.ticket_cm',[
-            'ticket_cm' => $ticket_cm, 
+            'tickets' => $tickets, 
             'sites' => $sites, 
             'typeactions' => $typeactions, 
+            'actionticket' => $actionticket,
+            'selected_code'=>$code,
+            'selected_site'=>$site,
+            'selected_typeaction'=>$typeaction,
+            'selected_datedeclaration'=>$datedeclaration,   
+        ]);
+    }
+
+    //Liste des autres tickets
+    public function AutresTickets(Request $request)
+    {
+
+        $code = $request->query('c', '');
+        $site = $request->query('s', '');
+        $typeaction = $request->query('t', '');
+        $datedeclaration = $request->query('d', '');
+
+        $whereRaw = ' 1 ';
+
+        if (!empty($code) || !empty($site) || !empty($typeaction) || !empty($datedeclaration)){
+            if(!empty($code)){
+                $whereRaw .= ' AND ticket.ticket_code LIKE "%' . $code . '%"';
+            }
+
+            if(!empty($site)){
+                $whereRaw .= ' AND ticket.site_id = "' . $site . '"';
+            }
+
+            if(!empty($typeaction)){
+                $whereRaw .= ' AND ticket.type_action_id = "' . $typeaction . '"';
+            }
+
+            if (!empty($datedeclaration)) {
+                $whereRaw .= ' AND ticket.ticket_datedeclaration = "' . $datedeclaration . '"';
+            }
+        }
+
+        if(Auth::user()->profil_id == 1 or Stdfn::isActionAutorisee(Auth::user()->id, "ACC_001") or Stdfn::isActionAutorisee(Auth::user()->id, "ACC_002")){
+            $tickets = Ticket::leftjoin('site', 'site.site_id', 'ticket.site_id')
+                                ->join('type_action', 'type_action.type_action_id', 'ticket.type_action_id')
+                                ->whereNotIn('type_action.type_action_code',['CM','MC','PM','PMEX'])
+                                ->whereRaw($whereRaw)
+                                ->whereDate('ticket_datedeclaration', Carbon::today())
+                                ->orderby('ticket_id','DESC')
+                                ->get();
+
+        }else{
+
+            $tickets = Ticket::leftjoin('site', 'site.site_id', 'ticket.site_id')
+                                ->join('type_action', 'type_action.type_action_id', 'ticket.type_action_id')
+                                ->where(['ticket.user_id'=>Auth::user()->id])
+                                ->whereNotIn('type_action.type_action_code',['CM','MC','PM','PMEX'])
+                                ->whereRaw($whereRaw)
+                                ->whereDate('ticket_datedeclaration', Carbon::today())
+                                ->orderby('ticket_id','DESC')
+                                ->get();
+                    
+        }
+
+        $sites = Site::leftjoin('zone', 'zone.zone_id', 'site.zone_id')->where(['site_statut'=>"VALIDE"])->orderby('site_nom','ASC')->get();
+		$typeactions = TypeAction::where(['type_action_statut'=>"VALIDE"])->orderby('type_action_nom','ASC')->get();
+        $actionticket = ActionTicket::where(['action_ticket_statut'=>"VALIDE"])->orderby('action_ticket_id','ASC')->get();
+
+        // Stocker les données de recherche en session
+        Session::put('recherche_data_ticket', [
+            'code' => $code,
+            'site' => $site,
+            'typeaction' => $typeaction,
+            'datedeclaration' => $datedeclaration,
+        ]);
+        
+        return view('ticket.autres_tickets',[
+            'tickets' => $tickets, 
+            'sites' => $sites, 
+            'typeactions' => $typeactions, 
+            'actionticket' => $actionticket,
             'selected_code'=>$code,
             'selected_site'=>$site,
             'selected_typeaction'=>$typeaction,
@@ -463,143 +672,146 @@ class TicketController extends Controller
 
     public function exporterCSV()
     {
-        $tickets = Ticket::join('site', 'site.site_id', '=', 'ticket.site_id')
-            ->join('users', 'users.id', '=', 'ticket.user_id')
-            ->join('type_action', 'type_action.type_action_id', '=', 'ticket.type_action_id')
-            ->select('site.site_ihs', 'site.site_nom', 'site.site_sbc', 'ticket.*', 'users.*')
-            ->orderBy('ticket.ticket_datecrea', 'desc')
-            ->get();
+        // Récupère les données de session ou un tableau vide
+        $data = Session::get('recherche_data_ticket', []); 
 
-        $headers = [
-            'Content-Type' => 'text/csv; charset=UTF-8',
-            'Content-Disposition' => 'attachment; filename="tickets.csv"',
-        ];
+        if(Auth::user()->profil_id == 1 or Stdfn::isActionAutorisee(Auth::user()->id, "ACC_001") or Stdfn::isActionAutorisee(Auth::user()->id, "ACC_003") or Stdfn::isActionAutorisee(Auth::user()->id, "ACC_006")){
 
-        $callback = function() use ($tickets) {
-            $file = fopen('php://output', 'w');
-            // Ajouter le BOM UTF-8
-            fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
-            
-            // En-têtes en UTF-8
-            $headers = [
-                'N° Ticket',
-                'Site IHS',
-                'Site Name',
-                'Type',
-                "Chef d'équipe / Technicien",
-                "Contact 1",
-                "Contact 2",
-                'Date début',
-                'Heure début',
-                "Type d'action",
-                'Tâches',
-                'Remarque',
-                'Date fin',
-                'Heure fin'
-            ];
-            fputcsv($file, $headers);
+            $query = Ticket::select('ticket_code', 'site_ihs', 'site_nom', 'site_sbc', 'nom_prenoms', 'telephone', 'autre_telephone', 'ticket_datedebut', 'ticket_heuredebut', 'type_action_nom', 'ticket_tacherealisee', 'ticket_remarque', 'ticket_datefin', 'ticket_heurefin')
+                            ->leftjoin('site', 'site.site_id', '=', 'ticket.site_id')
+                            ->leftjoin('users', 'users.id', '=', 'ticket.user_id')
+                            ->leftjoin('type_action', 'type_action.type_action_id', '=', 'ticket.type_action_id')
+                            ->orderBy('ticket_code', 'DESC');
 
-            foreach ($tickets as $ticket) {
-                fputcsv($file, [
-                    $ticket->ticket_code,
-                    $ticket->site_ihs,
-                    $ticket->site_nom,
-                    $ticket->site_sbc,
-                    $ticket->technicien_nom,
-                    $ticket->telephone,
-                    $ticket->autre_telephone,
-                    $ticket->ticket_datedebut,
-                    $ticket->ticket_heuredebut,
-                    $ticket->type_action_nom,
-                    $ticket->ticket_tacherealisee,
-                    $ticket->ticket_remarque,
-                    $ticket->ticket_datefin,
-                    $ticket->ticket_heurefin
-                ]);
+            // Appliquer les filtres seulement si des valeurs existent
+            if (!empty($data)) {
+                if (!empty($data['code'])) {
+                    $query->where('ticket.ticket_code', '=', $data['code']);
+                }
+                if (!empty($data['site'])) {
+                    $query->where('site.site_id', '=', $data['site']);
+                }
+                if (!empty($data['typeaction'])) {
+                    $query->where('type_action.type_action_id', '=', $data['typeaction']);
+                }
+                if (!empty($data['datedeclaration'])) {
+                    $query->where('ticket.site_date_creation', '=', $data['datedeclaration']);
+                }
             }
-            fclose($file);
-        };
 
-        return response()->stream($callback, 200, $headers);
+            $tickets = $query->get();
+
+            if($tickets->count() > 0){
+                return Excel::download(new TicketExport($tickets), 'liste-des-tickets.csv', \Maatwebsite\Excel\Excel::CSV);
+            }else{
+                return back()->with('info_warning',"Il n'y a pas de données à exporter de la base de données");
+            }
+
+        }else{
+            return back()->with('info_warning',"Vous n'êtes pas autorisé faire de exportation");
+        }
     }
 
     public function exporterExcel()
     {
-        $tickets = Ticket::join('site', 'site.site_id', '=', 'ticket.site_id')
-            ->join('users', 'users.id', '=', 'ticket.user_id')
-            ->join('type_action', 'type_action.type_action_id', '=', 'ticket.type_action_id')
-            ->select('site.*', 'ticket.*', 'type_action.*', 'users.*')
-            ->orderBy('ticket.ticket_datecrea', 'desc')
-            ->get();
+        //Récupère les données de session ou un tableau vide
+        $data = Session::get('recherche_data_ticket', []); 
 
-        return response()->streamDownload(function() use ($tickets) {
-            $excel = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
-            $sheet = $excel->getActiveSheet();
+        if(Auth::user()->profil_id == 1 or Stdfn::isActionAutorisee(Auth::user()->id, "ACC_001") or Stdfn::isActionAutorisee(Auth::user()->id, "ACC_003") or Stdfn::isActionAutorisee(Auth::user()->id, "ACC_006")){
 
-            // En-têtes
-            $sheet->setCellValue('A1', 'N° Ticket');
-            $sheet->setCellValue('B1', 'Site IHS');
-            $sheet->setCellValue('C1', 'Site Name');
-            $sheet->setCellValue('D1', 'Type');
-            $sheet->setCellValue('E1', "Chef d'équipe / Technicien");
-            $sheet->setCellValue('F1', "Contact 1");
-            $sheet->setCellValue('G1', "Contact 2");
-            $sheet->setCellValue('H1', 'Date début');
-            $sheet->setCellValue('I1', 'Heure début');
-            $sheet->setCellValue('J1', 'Type d\'action');
-            $sheet->setCellValue('K1', 'Tâches');
-            $sheet->setCellValue('L1', 'Remarque');
-            $sheet->setCellValue('M1', 'Date fin');
-            $sheet->setCellValue('N1', 'Heure fin');
+            $query = Ticket::select('ticket_code', 'site_ihs', 'site_nom', 'site_sbc', 'nom_prenoms', 'telephone', 'autre_telephone', 'ticket_datedebut', 'ticket_heuredebut', 'type_action_nom', 'ticket_tacherealisee', 'ticket_remarque', 'ticket_datefin', 'ticket_heurefin')
+                            ->leftjoin('site', 'site.site_id', '=', 'ticket.site_id')
+                            ->leftjoin('users', 'users.id', '=', 'ticket.user_id')
+                            ->leftjoin('type_action', 'type_action.type_action_id', '=', 'ticket.type_action_id')
+                            ->orderBy('ticket_code', 'DESC');
 
-            // Données
-            $row = 2;
-            foreach ($tickets as $ticket) {
-                $sheet->setCellValue('A' . $row, $ticket->ticket_code);
-                $sheet->setCellValue('B' . $row, $ticket->site_ihs);
-                $sheet->setCellValue('C' . $row, $ticket->site_nom);
-                $sheet->setCellValue('D' . $row, $ticket->site_sbc);
-                $sheet->setCellValue('E' . $row, $ticket->nom_prenoms);
-                $sheet->setCellValue('F' . $row, $ticket->telephone);
-                $sheet->setCellValue('G' . $row, $ticket->autre_telephone);
-                $sheet->setCellValue('H' . $row, $ticket->ticket_datedebut);
-                $sheet->setCellValue('I' . $row, $ticket->ticket_heuredebut);
-                $sheet->setCellValue('J' . $row, $ticket->type_action_nom);
-                $sheet->setCellValue('K' . $row, $ticket->ticket_tacherealisee);
-                $sheet->setCellValue('L' . $row, $ticket->ticket_remarque);
-                $sheet->setCellValue('M' . $row, $ticket->ticket_datefin);
-                $sheet->setCellValue('N' . $row, $ticket->ticket_heurefin);
-                $row++;
+            // Appliquer les filtres seulement si des valeurs existent
+            if (!empty($data)) {
+                if (!empty($data['code'])) {
+                    $query->where('ticket.ticket_code', '=', $data['code']);
+                }
+                if (!empty($data['site'])) {
+                    $query->where('site.site_id', '=', $data['site']);
+                }
+                if (!empty($data['typeaction'])) {
+                    $query->where('type_action.type_action_id', '=', $data['typeaction']);
+                }
+                if (!empty($data['datedeclaration'])) {
+                    $query->where('ticket.site_date_creation', '=', $data['datedeclaration']);
+                }
             }
 
-            $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($excel);
-            $writer->save('php://output');
-        }, 'tickets.xlsx', [
-            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-            'Content-Disposition' => 'attachment; filename="tickets.xlsx"'
-        ]);
+            $tickets = $query->get();
+
+            //dd($data, $tickets);
+            if($tickets->count() > 0){
+                return Excel::download(new TicketExport($tickets), 'liste-des-ticket.xlsx');
+            }else{
+                return back()->with('info_warning',"Il n'a pas de données à exporter de la base de données");
+            }
+        }else{
+            return back()->with('info_warning',"Vous n'êtes pas autorisé faire de exportation");
+        }
     }
 
     public function exporterPDF()
-    {
-        $tickets = Ticket::join('site', 'site.site_id', '=', 'ticket.site_id')
-            ->join('users', 'users.id', '=', 'ticket.user_id')
-            ->join('type_action', 'type_action.type_action_id', '=', 'ticket.type_action_id')
-            ->orderBy('ticket.ticket_datecrea', 'desc')
-            ->get();
+    {  
+        //Récupère les données de session ou un tableau vide
+        $data = Session::get('recherche_data_ticket', []); 
 
-        $pdf = \PDF::loadView('exports.tickets', ['tickets' => $tickets])
-            ->setPaper('a4', 'landscape')
-            ->setOptions([
-                'isPhpEnabled' => true,
-                'isHtml5ParserEnabled' => true,
-                'isRemoteEnabled' => true,
-                'margin_top' => 20,
-                'margin_bottom' => 20,
-                'margin_left' => 15,
-                'margin_right' => 15,
-            ]);
+        if(Auth::user()->profil_id == 1 or Stdfn::isActionAutorisee(Auth::user()->id, "ACC_001") or Stdfn::isActionAutorisee(Auth::user()->id, "ACC_003") or Stdfn::isActionAutorisee(Auth::user()->id, "ACC_006")){
 
-        return $pdf->download('tickets.pdf');
+            $query = Ticket::leftjoin('site', 'site.site_id', '=', 'ticket.site_id')
+                            ->leftjoin('users', 'users.id', '=', 'ticket.user_id')
+                            ->leftjoin('type_action', 'type_action.type_action_id', '=', 'ticket.type_action_id')
+                            ->orderBy('ticket_code', 'DESC');
+
+            // Appliquer les filtres seulement si des valeurs existent
+            if (!empty($data)) {
+                if (!empty($data['code'])) {
+                    $query->where('ticket.ticket_code', '=', $data['code']);
+                }
+                if (!empty($data['site'])) {
+                    $query->where('site.site_id', '=', $data['site']);
+                }
+                if (!empty($data['typeaction'])) {
+                    $query->where('type_action.type_action_id', '=', $data['typeaction']);
+                }
+                if (!empty($data['datedeclaration'])) {
+                    $query->where('ticket.site_date_creation', '=', $data['datedeclaration']);
+                }
+            }
+
+            $tickets = $query->get();
+
+            //dd($data, $sites);
+            if($tickets->count() > 0){
+                
+                $html = View::make('exports.tickets', compact('tickets'))->render();
+
+                $dompdf = new Dompdf();
+                $dompdf->loadHtml($html);
+                $dompdf->setPaper('A4', 'landscape');
+                $dompdf->render();
+
+                // Ajouter la numérotation des pages en bas du document
+                $canvas = $dompdf->getCanvas();
+                $canvas->page_script(function ($pageNumber, $pageCount, $canvas, $fontMetrics) {
+                    $text = "Page $pageNumber / $pageCount";
+                    $font = $fontMetrics->getFont('Arial', 'normal');
+                    $size = 10;
+                    $width = $fontMetrics->getTextWidth($text, $font, $size);
+                    $x = ($canvas->get_width() - $width) / 2;
+                    $y = $canvas->get_height() - 30;
+                    $canvas->text($x, $y, $text, $font, $size);
+                });
+
+                return $dompdf->stream("liste-des-tickets.pdf");
+            }else{
+                return back()->with('info_warning',"Il n'a pas de données à exporter de la base de données");
+            }
+        }else{
+            return back()->with('info_warning',"Vous êtes autorisé faire de exportation");
+        }
     }
 }

@@ -58,43 +58,6 @@
                                 <span class="btnSupprimerTypeAction" data-type_action_id="{{ $typeaction->type_action_id }}" title="Supprimer"><img src="{{ asset('assets/admin/images/icon/supprimer.png') }}" width="20"></span>
                             </td> 
                         </tr>
-
-                        <div class="modal fade" id="EditTypeAction{{ $typeaction->type_action_id }}" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
-                            <div class="modal-dialog">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true"></button>
-                                        <h4 class="modal-title">Ajouter un nouveau type d'action</h4>
-                                    </div>
-                                    <form method="POST" action="{{ route('modifier_type_action', $typeaction->type_action_id) }}" enctype="multipart/form-data">
-                                        @csrf
-                                        <div class="modal-body"> 
-                                            <div class="form-group">
-                                                <label>Code du type d'action <span class="text-danger">*</span></label>
-                                                <input type="text" name="type_action_code" id="type_action_code" class="form-control" value="{{ $typeaction->type_action_code }}" required>
-                                            </div> 
-                                            <div class="form-group">
-                                                <label>Nom du type d'action <span class="text-danger">*</span></label>
-                                                <input type="text" name="nom" id="nom" class="form-control" value="{{ $typeaction->type_action_nom }}" required>
-                                            </div> 
-                                            <div class="form-group">
-                                                <label>Statut <span class="text-danger">*</span></label>
-                                                <select name="statut" id="statut" class="form-control" required>
-                                                    <option value="">Choisir</option>
-                                                    <option value="BROUILLON" {{ $typeaction->type_action_statut == 'BROUILLON' ? 'selected' : '' }}>BROUILLON</option>
-                                                    <option value="VALIDE" {{ $typeaction->type_action_statut == 'VALIDE' ? 'selected' : '' }}>VALIDE</option>
-                                                </select>
-                                            </div>   
-                                        </div>
-                                        <div class="modal-footer">
-                                            <button type="button" class="btn btn-danger" style="float: left !important;" data-dismiss="modal" style=""><i class="fa fa-remove"></i> Fermer</button>
-                                            <button type="submit" class="btn btn-success" style="float: right !important;" id="formSubmit"><i class="fa fa-check-circle"></i> Enregistrer</button>
-                                        </div>
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
-
                     @endforeach   
                 </tbody>
             </table>
@@ -102,6 +65,44 @@
       </div>
    </div>
 </div>
+
+@foreach($typeactions as $typeaction)
+    <div class="modal fade" id="EditTypeAction{{ $typeaction->type_action_id }}" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true"></button>
+                    <h4 class="modal-title">Modifier le type d'action</h4>
+                </div>
+                <form method="POST" action="{{ route('modifier_type_action', $typeaction->type_action_id) }}" enctype="multipart/form-data">
+                    @csrf
+                    <div class="modal-body"> 
+                        <div class="form-group">
+                            <label>Code du type d'action <span class="text-danger">*</span></label>
+                            <input type="text" name="type_action_code" id="type_action_code" class="form-control" value="{{ $typeaction->type_action_code }}" required>
+                        </div> 
+                        <div class="form-group">
+                            <label>Nom du type d'action <span class="text-danger">*</span></label>
+                            <input type="text" name="nom" id="nom" class="form-control" value="{{ $typeaction->type_action_nom }}" required>
+                        </div> 
+                        <div class="form-group">
+                            <label>Statut <span class="text-danger">*</span></label>
+                            <select name="statut" id="statut" class="form-control" required>
+                                <option value="">Choisir</option>
+                                <option value="BROUILLON" {{ $typeaction->type_action_statut == 'BROUILLON' ? 'selected' : '' }}>BROUILLON</option>
+                                <option value="VALIDE" {{ $typeaction->type_action_statut == 'VALIDE' ? 'selected' : '' }}>VALIDE</option>
+                            </select>
+                        </div>   
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-danger" style="float: left !important;" data-dismiss="modal" style=""><i class="fa fa-remove"></i> Fermer</button>
+                        <button type="submit" class="btn btn-success" style="float: right !important;" id="formSubmit"><i class="fa fa-check-circle"></i> Enregistrer</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+@endforeach
 
 <div class="modal fade" id="AjouterTypeAction" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
     <div class="modal-dialog">

@@ -51,7 +51,7 @@ class SiteImport implements ToModel, WithStartRow, WithCalculatedFormulas, WithC
                 // Vérifier si les valeurs requises sont présentes
                 if (empty($siteIhs) || empty($siteName)) {
                     Log::warning('Ligne ignorée - données requises manquantes:', ['row' => $row]);
-                    return null;
+                return null;
                 }
 
                 // Rechercher ou créer la région
@@ -200,7 +200,7 @@ class SiteImport implements ToModel, WithStartRow, WithCalculatedFormulas, WithC
         }
     
         return $phrase;
-    }
+    }   
 
     public function getCsvSettings(): array
     {
@@ -209,5 +209,5 @@ class SiteImport implements ToModel, WithStartRow, WithCalculatedFormulas, WithC
             'enclosure' => '"',
             'input_encoding' => 'UTF-8'
         ];
-    }
+    }   
 }

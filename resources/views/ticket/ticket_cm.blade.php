@@ -33,12 +33,31 @@
                @if(Auth::user()->profil_id == 1 or Stdfn::isActionAutorisee(Auth::user()->id, "ACC_001") or Stdfn::isActionAutorisee(Auth::user()->id, "ACC_003") or Stdfn::isActionAutorisee(Auth::user()->id, "ACC_006"))
                   <a class="btn btn-success btn-sm" href="{{ route('ajouter_ticket') }}"><i class="fa fa-plus-circle"></i> Nouveau ticket</a>
                @endif
+               <div class="btn-group">
+                  <a class="btn btn-success btn-sm" href="javascript:;" data-toggle="dropdown">
+                        <i class="icon-folder-alt"></i> Exporter <i class="fa fa-angle-down"></i>
+                  </a>
+                  <ul class="dropdown-menu pull-right">
+                        <li>
+                           <a href="{{ route('tickets.export.csv') }}">
+                           <i class="fa fa-file-excel-o"></i> Exporter fichier CSV</a>
+                        </li>
+                        <li>
+                           <a href="{{ route('tickets.export.excel') }}">
+                           <i class="fa fa-file-excel-o"></i> Exporter fichier Excel</a>
+                        </li>
+                        <li>
+                           <a href="{{ route('tickets.export.pdf') }}">
+                           <i class="fa fa-file-pdf-o"></i> Exporter fichier PDF</a>
+                        </li>
+                  </ul>
+               </div>
             </div>
          </div>
          <div class="portlet-body">
             <div class="table-toolbar">
                <div class="row">
-                  <form action="{{ route('liste_ticket') }}" method="GET">
+                  <form action="{{ route('ticket_cm') }}" method="GET">
                      <div class="col-md-2">
                         <div class="form-group">
                            <label for="c">Code</label>
@@ -75,7 +94,7 @@
                      </div>
                      <div class="col-md-2" style="margin-top: 25px;">
                         <button type="submit" class="btn btn-primary" style="float:left"><i class="fa fa-search"></i></button>
-                        <a href="{{ route('liste_ticket') }}" class="btn btn-success" style="float:right"><i class="fa fa-refresh"></i></a>
+                        <a href="{{ route('ticket_cm') }}" class="btn btn-success" style="float:right"><i class="fa fa-refresh"></i></a>
                      </div>
                   </form>
                </div>
@@ -96,7 +115,7 @@
                      </tr>
                   </thead>
                   <tbody>
-                     @foreach($ticket_cm as $ticket)
+                     @foreach($tickets as $ticket)
                         <tr>
                            <td class="d-none"></td>
                            <td>{{ $ticket->ticket_code }}</td>
@@ -107,8 +126,10 @@
                            <td>{{ Stdfn::dateFromDB($ticket->ticket_datedeclaration) }}</td>
                            <td class="text-center action_button">
                               <a href="{{ route('details_ticket',[$ticket->ticket_id, Stdfn::clean_url(html_entity_decode($ticket->ticket_code))]) }}"><img src="{{ asset('assets/admin/images/icon/details.png') }}" width="20"></a>
-                              <a href="{{ route('modifier_ticket', $ticket->ticket_id) }}" title="Modifier" ><img src="{{ asset('assets/admin/images/icon/modifier.png') }}" width="20"></a>
-                              <span class="btnSupprimerTicket" data-ticket_id="{{ $ticket->ticket_id }}" title="Supprimer"><img src="{{ asset('assets/admin/images/icon/supprimer.png') }}" width="20"></span>
+                              @if(in_array(Auth::user()->profil_id, [1, 2]))
+                                 <a href="{{ route('modifier_ticket', $ticket->ticket_id) }}" title="Modifier" ><img src="{{ asset('assets/admin/images/icon/modifier.png') }}" width="20"></a>
+                                 <span class="btnSupprimerTicket" data-ticket_id="{{ $ticket->ticket_id }}" title="Supprimer"><img src="{{ asset('assets/admin/images/icon/supprimer.png') }}" width="20"></span>
+                              @endif
                            </td> 
                         </tr>
                      @endforeach
@@ -119,4 +140,5 @@
       </div>
    </div>
 </div>
+@include('ticket.modal_demande_action')
 @endsection

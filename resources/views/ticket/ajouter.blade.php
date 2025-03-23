@@ -142,7 +142,7 @@
                             <div class="col-md-12">
                                 <div class="form-group">
                                     <label>Description d'inventaire d'équipement passif</label>
-                                    <textarea name="description" id="description" rows="10">{{ old('description') }}</textarea>
+                                    <textarea name="description" class="form-control" id="summernote_1" rows="6">{{ old('description') }}</textarea>
                                 </div>
                             </div>
                             <hr>
@@ -159,25 +159,4 @@
     </div>
 </div>
 @endsection
-
-@push('scripts')
-<script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
-<script>
-    tinymce.init({
-        selector: '#description',
-        plugins: 'anchor autolink charmap codesample emoticons image link lists media searchreplace table visualblocks wordcount',
-        toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | link image media table | align lineheight | numlist bullist indent outdent | emoticons charmap | removeformat',
-        height: 300,
-        language: 'fr_FR',
-        menubar: false,
-        branding: false,
-        promotion: false,
-        content_style: 'body { font-family: -apple-system, BlinkMacSystemFont, San Francisco, Segoe UI, Roboto, Helvetica Neue, sans-serif; font-size: 14px; }',
-        setup: function(editor) {
-            editor.on('change', function() {
-                editor.save();
-            });
-        }
-    });
-</script>
-@endpush
+<script src="{{asset('assets/js/jquery.js') }}"></script>

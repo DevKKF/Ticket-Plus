@@ -346,3 +346,7 @@
 .badge-VALIDE{
    background: green !important;
 }
+
+.f-bold{
+   font-weight: bolder;
+}

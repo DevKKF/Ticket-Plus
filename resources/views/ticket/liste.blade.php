@@ -126,8 +126,11 @@
                            <td>{{ Stdfn::dateFromDB($ticket->ticket_datedeclaration) }}</td>
                            <td class="text-center action_button">
                               <a href="{{ route('details_ticket',[$ticket->ticket_id, Stdfn::clean_url(html_entity_decode($ticket->ticket_code))]) }}"><img src="{{ asset('assets/admin/images/icon/details.png') }}" width="20"></a>
-                              <a href="{{ route('modifier_ticket', $ticket->ticket_id) }}" title="Modifier" ><img src="{{ asset('assets/admin/images/icon/modifier.png') }}" width="20"></a>
-                              <span class="btnSupprimerTicket" data-ticket_id="{{ $ticket->ticket_id }}" title="Supprimer"><img src="{{ asset('assets/admin/images/icon/supprimer.png') }}" width="20"></span>
+                              @if(in_array(Auth::user()->profil_id, [1, 2]))
+                                 <a href="{{ route('modifier_ticket', $ticket->ticket_id) }}" title="Modifier" ><img src="{{ asset('assets/admin/images/icon/modifier.png') }}" width="20"></a>
+                                 <span class="btnSupprimerTicket" data-ticket_id="{{ $ticket->ticket_id }}" title="Supprimer"><img src="{{ asset('assets/admin/images/icon/supprimer.png') }}" width="20"></span>
+                              @endif
+                              <span data-toggle="modal" title="Demande d'action" data-target="#DemandeActionTicket{{ $ticket->ticket_id }}"><img src="{{ asset('assets/admin/images/icon/demande.png') }}" width="20"></span>
                            </td> 
                         </tr>
                      @endforeach
@@ -138,4 +141,5 @@
       </div>
    </div>
 </div>
+@include('ticket.modal_demande_action')
 @endsection

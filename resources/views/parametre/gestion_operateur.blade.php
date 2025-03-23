@@ -56,39 +56,6 @@
                                 <span class="btnSupprimerOperateur" data-operateur_id="{{ $operateur->operateur_id }}" title="Supprimer"><img src="{{ asset('assets/admin/images/icon/supprimer.png') }}" width="20"></span>
                             </td> 
                         </tr>
-
-                        <div class="modal fade" id="EditOperateur{{ $operateur->operateur_id }}" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
-                            <div class="modal-dialog">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true"></button>
-                                        <h4 class="modal-title">Modifier l'opérateur</h4>
-                                    </div>
-                                    <form method="POST" action="{{ route('modifier_operateur', $operateur->operateur_id) }}" enctype="multipart/form-data">
-                                        @csrf
-                                        <div class="modal-body"> 
-                                            <div class="form-group">
-                                                <label>Nom de l'opérateur <span class="text-danger">*</span></label>
-                                                <input type="text" name="nom" id="nom" class="form-control" value="{{ $operateur->operateur_nom }}" required>
-                                            </div> 
-                                            <div class="form-group">
-                                                <label>Statut <span class="text-danger">*</span></label>
-                                                <select name="statut" id="statut" class="form-control" required>
-                                                    <option value="">Choisir</option>
-                                                    <option value="BROUILLON" {{ $operateur->operateur_statut == 'BROUILLON' ? 'selected' : '' }}>BROUILLON</option>
-                                                    <option value="VALIDE" {{ $operateur->operateur_statut == 'VALIDE' ? 'selected' : '' }}>VALIDE</option>
-                                                </select>
-                                            </div>   
-                                        </div>
-                                        <div class="modal-footer">
-                                            <button type="button" class="btn btn-danger" style="float: left !important;" data-dismiss="modal" style=""><i class="fa fa-remove"></i> Fermer</button>
-                                            <button type="submit" class="btn btn-success" style="float: right !important;" id="formSubmit"><i class="fa fa-check-circle"></i> Enregistrer</button>
-                                        </div>
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
-
                     @endforeach   
                 </tbody>
             </table>
@@ -96,6 +63,40 @@
       </div>
    </div>
 </div>
+
+@foreach($operateurs as $operateur)
+    <div class="modal fade" id="EditOperateur{{ $operateur->operateur_id }}" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true"></button>
+                    <h4 class="modal-title">Modifier l'opérateur</h4>
+                </div>
+                <form method="POST" action="{{ route('modifier_operateur', $operateur->operateur_id) }}" enctype="multipart/form-data">
+                    @csrf
+                    <div class="modal-body"> 
+                        <div class="form-group">
+                            <label>Nom de l'opérateur <span class="text-danger">*</span></label>
+                            <input type="text" name="nom" id="nom" class="form-control" value="{{ $operateur->operateur_nom }}" required>
+                        </div> 
+                        <div class="form-group">
+                            <label>Statut <span class="text-danger">*</span></label>
+                            <select name="statut" id="statut" class="form-control" required>
+                                <option value="">Choisir</option>
+                                <option value="BROUILLON" {{ $operateur->operateur_statut == 'BROUILLON' ? 'selected' : '' }}>BROUILLON</option>
+                                <option value="VALIDE" {{ $operateur->operateur_statut == 'VALIDE' ? 'selected' : '' }}>VALIDE</option>
+                            </select>
+                        </div>   
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-danger" style="float: left !important;" data-dismiss="modal" style=""><i class="fa fa-remove"></i> Fermer</button>
+                        <button type="submit" class="btn btn-success" style="float: right !important;" id="formSubmit"><i class="fa fa-check-circle"></i> Enregistrer</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+@endforeach
 
 <div class="modal fade" id="AjouterOperateur" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
     <div class="modal-dialog">
