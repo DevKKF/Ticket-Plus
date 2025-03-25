@@ -3,11 +3,11 @@ $(document).ready(function () {
     function manage_profil_change() {
 
         let profil_id = parseInt($('#profil_id').val());
-        
+
         switch (profil_id) {
             default:
             case 2://ADMINISTRATEUR
-                $('.site_choise').hide();
+                $('.site_choise').show();
                 break;
             case 3://UTILISATEUR
                 $('.site_choise').show();

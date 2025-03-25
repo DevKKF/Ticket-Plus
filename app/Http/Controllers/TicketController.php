@@ -372,6 +372,7 @@ class TicketController extends Controller
         }
 	}
 
+    //Save demande de suppression ou modifiction de ticket
     public function SaveDemandeActionTicket(Request $request, $ticket_id)
 	{
         
@@ -398,9 +399,6 @@ class TicketController extends Controller
                     ->withInput();
             }
 
-            // Générer l'UID
-            $uid = Str::uuid();
-
             // Récupération de la date du formulaire
             $dateDemande = Carbon::parse($request->input('demande_date'));
 
@@ -414,7 +412,6 @@ class TicketController extends Controller
             $demande->creerpar_id           = Auth::id();
             $demande->ticket_id             = $ticket->ticket_id;
             $demande->action_ticket_id      = $request->action_ticket_id;
-            $demande->demande_code          = $uid;
             $demande->demande_date_delais   = $datePlusTroisJours;
             $demande->demande_date          = htmlspecialchars($request->demande_date);
             $demande->demande_a_traiter     = htmlspecialchars($request->demande_a_traiter);

@@ -339,11 +339,15 @@
    cursor: pointer !important;
 }
 
-.badge-BROUILLON{
+.badge-BROUILLON, .badge-ANNULE{
    background: red !important;
 }
 
-.badge-VALIDE{
+.badge-ENCOURS{
+   background: #191F55 !important;
+}
+
+.badge-VALIDE, .badge-ACCEPTE{
    background: green !important;
 }
 

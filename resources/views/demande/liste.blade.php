@@ -50,8 +50,8 @@
                      </div>
                      <div class="col-md-3">
                         <div class="form-group">
-                           <label>Type de demande <span class="text-danger">*</span></label>
-                           <select name="ta" id="ta" class="form-control" required>
+                           <label>Type de demande</label>
+                           <select name="ta" id="ta" class="form-control">
                               <option value="">Choisir</option>
                               @foreach($actionticket as $action)
                                  <option value="{{ $action->action_ticket_id }}" {{ $selected_action == $action->action_ticket_id ? 'selected' : '' }}>{{ $action->action_ticket_nom }}</option>
@@ -61,8 +61,8 @@
                      </div>
                      <div class="col-md-2">
                         <div class="form-group">
-                           <label>Statut <span class="text-danger">*</span></label>
-                           <select name="s" id="s" class="form-control" required>
+                           <label>Statut</label>
+                           <select name="s" id="s" class="form-control">
                               <option value="">Choisir</option>
                               
                            </select>
@@ -88,7 +88,6 @@
                      <tr>
                         <th class="d-none"></th>
                         <th>Demandeur</th>
-                        <th>Code demande</th>
                         <th>Type de demande</th>
                         <th>Demande à traiter</th>
                         <th>Statut</th>
@@ -101,12 +100,16 @@
                         <tr>
                            <td class="d-none"></td>
                            <td>{!! $demande->nom_prenoms !!}</td>
-                           <td>{{ $demande->demande_code }}</td>
                            <td>{{ $demande->action_ticket_nom }}</td>
                            <td>{!! $demande->demande_a_traiter !!}</td>
-                           <td>{{ $demande->demande_statut }}</td>
+                           <td><span class="badge badge-<?php echo(str_replace(' ','', $demande->demande_statut)); ?>">{{ $demande->demande_statut }}</span></td>
                            <td>{{ Stdfn::dateFromDB($demande->demande_date) }}</td>
-                           <td class="text-center action_button"></td> 
+                           <td class="text-center action_button">
+                              <a href="{{ route('details_demande',$demande->demande_id) }}"><img src="{{ asset('assets/admin/images/icon/details.png') }}" width="20"></a>
+                              @if($demande->demande_statut == "EN COURS")
+                                 <span data-toggle="modal" title="Traitement" data-target="#DemandeAction{{ $demande->demande_id }}"><img src="{{ asset('assets/admin/images/icon/demande.png') }}" width="20"></span>
+                              @endif
+                           </td> 
                         </tr>
                      @endforeach
                   </tbody>
@@ -116,4 +119,5 @@
       </div>
    </div>
 </div>
+@include('demande.modal_traitement')
 @endsection

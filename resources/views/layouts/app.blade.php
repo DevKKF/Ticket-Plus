@@ -80,24 +80,24 @@
             <div class="page-top">
                <div class="top-menu">
                   <ul class="nav navbar-nav pull-right">
-
-                     <li class="dropdown dropdown-extended dropdown-notification" id="header_notification_bar">
-                        <a href="javascript:;" class="dropdown-toggle" data-toggle="dropdown" data-hover="dropdown" data-close-others="true">
-                           <i class="icon-bell"></i>
-                           <span class="badge badge-default" id="notification-count">0</span>
-                        </a>
-                        <ul class="dropdown-menu">
-                           <li class="external">
-                                 <h3><span class="bold"><span id="notification-count-title">0</span> nouvelle(s)</span> demandes</h3>
-                                 <a href="{{ route('liste_des_demandes') }}">Tout voir</a>
-                           </li>
-                           <li>
-                                 <ul class="dropdown-menu-list scroller" style="height: 250px; overflow-y: auto" data-handle-color="#637283" id="notification-items">
-                                 </ul>
-                           </li>
-                        </ul>
-                     </li>
-
+                     @if(in_array(Auth::user()->profil_id, [1, 2]))
+                        <li class="dropdown dropdown-extended dropdown-notification" id="header_notification_bar">
+                           <a href="javascript:;" class="dropdown-toggle" data-toggle="dropdown" data-hover="dropdown" data-close-others="true">
+                              <i class="icon-bell"></i>
+                              <span class="badge badge-default" id="notification-count">0</span>
+                           </a>
+                           <ul class="dropdown-menu">
+                              <li class="external">
+                                    <h3><span class="bold"><span id="notification-count-title">0</span> nouvelle(s)</span> demandes</h3>
+                                    <a href="{{ route('liste_des_demandes') }}">Tout voir</a>
+                              </li>
+                              <li>
+                                    <ul class="dropdown-menu-list scroller" style="height: 250px; overflow-y: auto" data-handle-color="#637283" id="notification-items">
+                                    </ul>
+                              </li>
+                           </ul>
+                        </li>
+                     @endif
                      <li class="dropdown dropdown-user">
                         <a href="javascript:;" class="dropdown-toggle" data-toggle="dropdown" data-hover="dropdown" data-close-others="true">
                            @if(Auth::user()->user_photo)
@@ -110,16 +110,16 @@
                         </a>
                         <ul class="dropdown-menu dropdown-menu-default">
                            <li>
-                              <a href="">
-                              <i class="icon-user"></i> Mon Profil </a>
+                              <a href="{{ route('mon_compte') }}">
+                              <i class="icon-user"></i> Mon compte </a>
                            </li>
                            <!--li>
                               <a href="">
                               <i class="icon-envelope"></i> Messages </a>
                            </li-->
                            <li>
-                              <a href="">
-                              <i class="icon-lock-open"></i> Changer le mot de passe </a>
+                              <a href="{{ route('changer_mot_passe') }}">
+                              <i class="icon-lock-open"></i> Mot de passe </a>
                            </li>
                            <li>
                               <a href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
@@ -149,27 +149,27 @@
                            <span class="selected"></span>
                         </a>
                      </li>
-                     @if(Auth::user()->profil_id == 1 or Stdfn::isActionAutorisee(Auth::user()->id, "ACC_001") or Stdfn::isActionAutorisee(Auth::user()->id, "ACC_002") or Stdfn::isActionAutorisee(Auth::user()->id, "ACC_005"))
-                     <li class="@if(substr($_SERVER['REQUEST_URI'], 0,  31) == '/gestion-des-sites/details-site' or substr($_SERVER['REQUEST_URI'], 0,  32) == '/gestion-des-sites/modifier-site' or substr($_SERVER['REQUEST_URI'], 0,  38) == '/gestion-des-sites/nouveau-ticket-site') active @endif {{Request::is('gestion-des-sites/ajouter-un-site', 'gestion-des-sites/liste-des-sites', '', '', '', '', '', '') ? 'active open' : ''}}">
-                        <a href="javascript:;">
-                        <i class="icon-globe"></i>
-                        <span class="title">Gestion des sites</span>
-                        <span class="selected"></span>
-                        <span class="arrow open"></span>
-                        </a>
-                        <ul class="sub-menu">
-                           @if(Auth::user()->profil_id == 1 or Stdfn::isActionAutorisee(Auth::user()->id, "ACC_001") or Stdfn::isActionAutorisee(Auth::user()->id, "ACC_002"))
-                              <li class="{{Request::is('gestion-des-sites/ajouter-un-site') ? 'active' : ''}}">
-                                 <a href="{{ route('ajouter_site') }}">Ajouter un site</a>
+                     @if(Auth::user()->profil_id == 1 or Stdfn::isActionAutorisee(Auth::user()->id, "ACC_001") or Stdfn::isActionAutorisee(Auth::user()->id, "ACC_002") or Stdfn::isActionAutorisee(Auth::user()->id, "ACC_005") or Stdfn::isActionAutorisee(Auth::user()->id, "ACC_007"))
+                        <li class="@if(substr($_SERVER['REQUEST_URI'], 0,  31) == '/gestion-des-sites/details-site' or substr($_SERVER['REQUEST_URI'], 0,  32) == '/gestion-des-sites/modifier-site' or substr($_SERVER['REQUEST_URI'], 0,  38) == '/gestion-des-sites/nouveau-ticket-site') active @endif {{Request::is('gestion-des-sites/ajouter-un-site', 'gestion-des-sites/liste-des-sites', '', '', '', '', '', '') ? 'active open' : ''}}">
+                           <a href="javascript:;">
+                           <i class="icon-globe"></i>
+                           <span class="title">Gestion des sites</span>
+                           <span class="selected"></span>
+                           <span class="arrow open"></span>
+                           </a>
+                           <ul class="sub-menu">
+                              @if(in_array(Auth::user()->profil_id, [1, 2]))
+                                 <li class="{{Request::is('gestion-des-sites/ajouter-un-site') ? 'active' : ''}}">
+                                    <a href="{{ route('ajouter_site') }}">Ajouter un site</a>
+                                 </li>
+                              @endif 
+                              <li class="{{Request::is('gestion-des-sites/liste-des-sites') ? 'active' : ''}}">
+                                 <a href="{{ route('liste_site') }}">Liste des sites</a>
                               </li>
-                           @endif 
-                           <li class="{{Request::is('gestion-des-sites/liste-des-sites') ? 'active' : ''}}">
-                              <a href="{{ route('liste_site') }}">Liste des sites</a>
-                           </li>
-                        </ul>
-                     </li>
+                           </ul>
+                        </li>
                      @endif 
-                     @if(Auth::user()->profil_id == 1 or Stdfn::isActionAutorisee(Auth::user()->id, "ACC_001") or Stdfn::isActionAutorisee(Auth::user()->id, "ACC_003") or Stdfn::isActionAutorisee(Auth::user()->id, "ACC_006"))
+                     @if(Auth::user()->profil_id == 1 or Stdfn::isActionAutorisee(Auth::user()->id, "ACC_001") or Stdfn::isActionAutorisee(Auth::user()->id, "ACC_003") or Stdfn::isActionAutorisee(Auth::user()->id, "ACC_006") or Stdfn::isActionAutorisee(Auth::user()->id, "ACC_007"))
                         <li class="@if(substr($_SERVER['REQUEST_URI'], 0,  35) == '/gestion-des-tickets/details-ticket' or substr($_SERVER['REQUEST_URI'], 0,  36) == '/gestion-des-tickets/modifier-ticket' or substr($_SERVER['REQUEST_URI'], 0,  46) == '/gestion-des-tickets/details-historique-ticket') active @endif {{Request::is('gestion-des-tickets/ajouter-un-ticket', 'gestion-des-tickets/liste-des-tickets', 'gestion-des-tickets/ticket-pm', 'gestion-des-tickets/ticket-cm', 'gestion-des-tickets/autres-tickets', '', '', '') ? 'active open' : ''}}">
                            <a href="javascript:;">
                            <i class="icon-drawer"></i>
@@ -178,7 +178,7 @@
                            <span class="arrow open"></span>
                            </a>
                            <ul class="sub-menu">
-                              @if(Auth::user()->profil_id == 1 or Stdfn::isActionAutorisee(Auth::user()->id, "ACC_001") or Stdfn::isActionAutorisee(Auth::user()->id, "ACC_003") or Stdfn::isActionAutorisee(Auth::user()->id, "ACC_006"))
+                              @if(in_array(Auth::user()->profil_id, [1, 2]))
                                  <li class="{{Request::is('gestion-des-tickets/ajouter-un-ticket') ? 'active' : ''}}">
                                     <a href="{{ route('ajouter_ticket') }}">Ajouter un ticket</a>
                                  </li>
@@ -189,7 +189,7 @@
                            </ul>
                         </li>
                      @endif
-                     @if(Auth::user()->profil_id == 1 or Stdfn::isActionAutorisee(Auth::user()->id, "ACC_001") or Stdfn::isActionAutorisee(Auth::user()->id, "ACC_004"))
+                     @if(Auth::user()->profil_id == 1 or Stdfn::isActionAutorisee(Auth::user()->id, "ACC_001") or Stdfn::isActionAutorisee(Auth::user()->id, "ACC_004") or Stdfn::isActionAutorisee(Auth::user()->id, "ACC_007"))
                         <li class="@if(substr($_SERVER['REQUEST_URI'], 0,  46) == '/gestion-des-utilisateurs/modifier-utilisateur' or substr($_SERVER['REQUEST_URI'], 0,  45) == '/gestion-des-utilisateurs/details-utilisateur' or substr($_SERVER['REQUEST_URI'], 0,  37) == '/gestion-des-utilisateurs/sites-geres' or substr($_SERVER['REQUEST_URI'], 0,  45) == '/gestion-des-utilisateurs/tickets-enregistres') active @endif {{Request::is('gestion-des-utilisateurs/ajouter-un-utilisateur', 'gestion-des-utilisateurs/liste-des-utilisateurs', '', '', '', '', '', '') ? 'active open' : ''}}">
                            <a href="javascript:;">
                            <i class="icon-users"></i>
@@ -198,9 +198,11 @@
                            <span class="arrow open"></span>
                            </a>
                            <ul class="sub-menu">
-                              <li class="{{Request::is('gestion-des-utilisateurs/ajouter-un-utilisateur') ? 'active' : ''}}">
-                                 <a href="{{ route('ajouter_utilisateur') }}">Ajouter un utilisateur</a>
-                              </li>
+                              @if(in_array(Auth::user()->profil_id, [1, 2]))
+                                 <li class="{{Request::is('gestion-des-utilisateurs/ajouter-un-utilisateur') ? 'active' : ''}}">
+                                    <a href="{{ route('ajouter_utilisateur') }}">Ajouter un utilisateur</a>
+                                 </li>
+                              @endif
                               <li class="{{Request::is('gestion-des-utilisateurs/liste-des-utilisateurs') ? 'active' : ''}}">
                                  <a href="{{ route('liste_utilisateur') }}">Liste des utilisateurs</a>
                               </li>
@@ -320,8 +322,6 @@
       <script src="{{ asset('assets/admin/pages/scripts/profile.js') }}" type="text/javascript"></script>
       <script src="{{ asset('assets/admin/pages/scripts/components-editors.js') }}"></script>
 
-      <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
       <script>
          jQuery(document).ready(function() {  
             Metronic.init();
@@ -389,44 +389,61 @@
       <script src="{{ asset('assets/js/noty/themes/default.js') }}"></script>
 
       <script>
-         $(document).ready(function() {
-            function checkNotifications() {
-               $.ajax({
-                     url: '/api/notifications',
-                     type: 'GET',
-                     success: function(response) {
-                        $('#notification-count').text(response.count);
-                        $('#notification-count-title').text(response.count);
-                        $('#notification-items').empty();
+         document.addEventListener('DOMContentLoaded', function() {
+            function updateNotificationUI(count, notifications) {
+               const countElement = document.getElementById('notification-count');
+               const countTitleElement = document.getElementById('notification-count-title');
+               const itemsContainer = document.getElementById('notification-items');
+               
+               if (countElement) countElement.textContent = count;
+               if (countTitleElement) countTitleElement.textContent = count;
+               if (itemsContainer) itemsContainer.innerHTML = '';
 
-                        if (response.count > 0) {
-                           response.notifications.forEach(function(notification) { // Utilisez 'notifications'
-                                 $('#notification-items').append(`
-                                    <li>
-                                       <a href="${notification.details}" class="notification-item">
-                                          <span class="time" style="font-size:9px !important">${notification.temps}</span>
-                                          <span class="details">
-                                             <span class="label label-sm label-icon label-success">
-                                                <i class="fa fa-bullhorn"></i>
-                                             </span>
-                                             <span class="notification-text" style="font-size:11px !important">${notification.titre}</span>
-                                          </span>
-                                       </a>
-                                    </li>
-                                 `);
-                           });
-                        } else {
-                           $('#notification-items').html('<li><a>Aucune nouvelle demande.</a></li>');
-                        }
-                     },
-                     error: function() {
-                        console.error('Erreur lors de la récupération des notifications.');
-                     }
-               });
+               if (count > 0 && itemsContainer) {
+                  notifications.forEach(notification => {
+                     const li = document.createElement('li');
+                     li.innerHTML = `
+                        <a href="${notification.details}" class="notification-item">
+                           <span class="time" style="font-size:9px !important">${notification.temps}</span>
+                           <span class="details">
+                              <span class="label label-sm label-icon label-success">
+                                 <i class="fa fa-bullhorn"></i>
+                              </span>
+                              <span class="notification-text" style="font-size:11px !important">${notification.titre}</span>
+                           </span>
+                        </a>
+                     `;
+                     itemsContainer.appendChild(li);
+                  });
+               } else if (itemsContainer) {
+                  itemsContainer.innerHTML = '<li><a>Aucune nouvelle demande.</a></li>';
+               }
             }
 
+            async function checkNotifications() {
+               try {
+                  const response = await fetch('/api/notifications', {
+                     method: 'GET',
+                     headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                     }
+                  });
+
+                  if (!response.ok) throw new Error('Erreur réseau');
+                  
+                  const data = await response.json();
+                  updateNotificationUI(data.count, data.notifications);
+               } catch (error) {
+                  console.error('Erreur lors de la récupération des notifications:', error);
+               }
+            }
+
+            // Première vérification
             checkNotifications();
-            setInterval(checkNotifications, 60000);
+
+            // Vérification toutes les 30 secondes
+            setInterval(checkNotifications, 30000);
          });
       </script>
 

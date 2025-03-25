@@ -99,7 +99,7 @@
                                         <div class="col-md-12">
                                             <div class="form-group">
                                                 <label>Description d'inventaire d'équipement passif</label>
-                                                <textarea name="description" data-provide="markdown" rows="10" data-error-container="#editor_error">{{ old('description') }}</textarea>
+                                                <textarea name="description" id="summernote_1" rows="10">{{ old('description') }}</textarea>
                                             </div>
                                         </div>
                                         <hr>

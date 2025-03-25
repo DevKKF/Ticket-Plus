@@ -38,95 +38,99 @@
             </div>
             <div class="actions">
                 <a class="btn btn-success btn-sm" href="{{ route('ajouter_utilisateur') }}"><i class="fa fa-plus-circle"></i> Nouveau utilisateur</a>
-                <a class="btn btn-success btn-sm" href="{{ route('liste_utilisateur') }}"><i class="icon-users"></i> Liste des utilisateurs</a>
-                <button class="btn btn-success btn-sm" data-toggle="modal" data-target="#ImporterUtilisateur"><i class="fa fa-users"></i> Importer des techniciens</button>
+                @if(in_array(Auth::user()->profil_id, [1, 2]))
+                    <a class="btn btn-success btn-sm" href="{{ route('liste_utilisateur') }}"><i class="icon-users"></i> Liste des utilisateurs</a>
+                    <button class="btn btn-success btn-sm" data-toggle="modal" data-target="#ImporterUtilisateur"><i class="fa fa-users"></i> Importer des techniciens</button>
+                @endif
             </div>
          </div>
          <div class="portlet-body form">
-            <form  method="POST" action="{{ route('save_modifier_utilisateur', $utilisateur->id) }}" enctype="multipart/form-data">
-                @csrf
-                <div class="form-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label>Nom et Prénoms <span class="text-danger">*</span></label>
-                                <input type="text" name="nom_prenoms" id="nom_prenoms" class="form-control" value="<?php echo(html_entity_decode($utilisateur->nom_prenoms)) ?>" required>
+            @if(in_array(Auth::user()->profil_id, [1, 2]))
+                <form  method="POST" action="{{ route('save_modifier_utilisateur', $utilisateur->id) }}" enctype="multipart/form-data">
+                    @csrf
+                    <div class="form-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Nom et Prénoms <span class="text-danger">*</span></label>
+                                    <input type="text" name="nom_prenoms" id="nom_prenoms" class="form-control" value="<?php echo(html_entity_decode($utilisateur->nom_prenoms)) ?>" required>
+                                </div>
                             </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label>Téléphone <span class="text-danger">*</span></label>
-                                <input type="text" name="telephone" id="telephone" class="form-control" value="{{ $utilisateur->telephone }}" required>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Téléphone <span class="text-danger">*</span></label>
+                                    <input type="text" name="telephone" id="telephone" class="form-control" value="{{ $utilisateur->telephone }}" required>
+                                </div>
                             </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label>Autre téléphone</label>
-                                <input type="text" name="autre_telephone" id="autre_telephone" class="form-control" value="{{ $utilisateur->autre_telephone }}">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Autre téléphone</label>
+                                    <input type="text" name="autre_telephone" id="autre_telephone" class="form-control" value="{{ $utilisateur->autre_telephone }}">
+                                </div>
                             </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label>Login <span class="text-danger">*</span></label>
-                                <input type="email" name="email" id="email" class="form-control" value="{{ $utilisateur->email }}" required>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Login <span class="text-danger">*</span></label>
+                                    <input type="email" name="email" id="email" class="form-control" value="{{ $utilisateur->email }}" required>
+                                </div>
                             </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label>Mot de passe <span class="text text-danger">*</span></label>
-                                <input type="password" class="form-control" name="password" value="{{ old('password') }}" required>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Mot de passe <span class="text text-danger">*</span></label>
+                                    <input type="password" class="form-control" name="password" value="{{ old('password') }}" required>
+                                </div>
                             </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label>Confirmer mot de passe <span class="text text-danger">*</span></label>
-                                <input type="password" class="form-control" name="password_confirmation" value="{{ old('password_confirmation') }}" required>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Confirmer mot de passe <span class="text text-danger">*</span></label>
+                                    <input type="password" class="form-control" name="password_confirmation" value="{{ old('password_confirmation') }}" required>
+                                </div>
                             </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label>Photo</label>
-                                <input type="file" class="form-control" name="photo" value="{{ old('photo') }}" accept=".png, .jpg, .jpeg">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Photo</label>
+                                    <input type="file" class="form-control" name="photo" value="{{ old('photo') }}" accept=".png, .jpg, .jpeg">
+                                </div>
                             </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label>Niveau d'accès <span class="text-danger">*</span></label>
-                                <select name="profil_id" id="profil_id" class="form-control" onchange="getActionsModification(this.value, {{ $utilisateur->id ?? 'null' }})" required>
-                                    <option value="">Choisir</option>
-                                    @foreach($profils as $profil)
-                                        <option value="{{ $profil->profil_id }}" {{ $utilisateur->profil_id == $profil->profil_id ? 'selected' : '' }}>{{ $profil->profil_nom }}</option>
-                                    @endforeach 
-                                </select>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Niveau d'accès <span class="text-danger">*</span></label>
+                                    <select name="profil_id" id="profil_id" class="form-control" onchange="getActionsModification(this.value, {{ $utilisateur->id ?? 'null' }})" required>
+                                        <option value="">Choisir</option>
+                                        @foreach($profils as $profil)
+                                            <option value="{{ $profil->profil_id }}" {{ $utilisateur->profil_id == $profil->profil_id ? 'selected' : '' }}>{{ $profil->profil_nom }}</option>
+                                        @endforeach 
+                                    </select>
+                                </div>
                             </div>
-                        </div>
-                        <div class="col-md-12">
-                            <div class="form-group" style="background:#4D5B69; font-weight:bold;">
-                                <div id="actions"></div>
+                            <div class="col-md-12">
+                                <div class="form-group" style="background:#4D5B69; font-weight:bold;">
+                                    <div id="actions"></div>
+                                </div>
                             </div>
+                            <div class="col-md-12 site_choise mt-5" style="display:none">
+                                <div class="form-group">
+                                    <label>Sites à gérer <span class="text-danger">*</span></label>
+                                    <select name="site_ids[]" id="multi-value-select" multiple="multiple" class="select_multiple form-control" data-placeholder="Choisir un ou des site(s)" tabindex="1">
+                                        <option value="">Choisir un ou des site(s)</option>
+                                        @foreach($sites as $site)
+                                            <option value="{{ $site->site_id }}"
+                                                @foreach($site_gerer as $site_ge)
+                                                    {{ $site_ge->site_id == $site->site_id ? 'selected' : '' }}
+                                                @endforeach 
+                                            >{{ $site->site_nom }} - {{ $site->zone_nom }}</option>
+                                        @endforeach 
+                                    </select>
+                                </div> 
+                            </div>
+                            <hr>
                         </div>
-                        <div class="col-md-12 site_choise mt-5" style="display:none">
-                            <div class="form-group">
-                                <label>Sites à gérer <span class="text-danger">*</span></label>
-                                <select name="site_ids[]" id="multi-value-select" multiple="multiple" class="select_multiple form-control" data-placeholder="Choisir un ou des site(s)" tabindex="1">
-                                    <option value="">Choisir un ou des site(s)</option>
-                                    @foreach($sites as $site)
-                                        <option value="{{ $site->site_id }}"
-                                            @foreach($site_gerer as $site_ge)
-                                                {{ $site_ge->site_id == $site->site_id ? 'selected' : '' }}
-                                            @endforeach 
-                                        >{{ $site->site_nom }} - {{ $site->zone_nom }}</option>
-                                    @endforeach 
-                                </select>
-                            </div> 
-                        </div>
-                        <hr>
                     </div>
-                </div>
-                <div class="form-actions right">
-                    <button type="submit" class="btn btn-success" id="formSubmit"><i class="fa fa-check-circle"></i> Enregistrer</button>
-                </div>
-            </form>            
+                    <div class="form-actions right">
+                        <button type="submit" class="btn btn-success" id="formSubmit"><i class="fa fa-check-circle"></i> Enregistrer</button>
+                    </div>
+                </form>        
+            @endif    
          </div>
       </div>
    </div>
@@ -145,6 +149,13 @@
 
     function getActionsModification(profil_id, user_id = null) {
         if (profil_id) {
+
+            if(profil_id == 3){
+                $('.site_choise').show();
+            }else{
+                $('.site_choise').hide();
+            }
+
             let url = '/profil-modification/' + profil_id + '/actions';
             if (user_id) {
                 url += '/' + user_id; // Ajout du user_id si on est en modification

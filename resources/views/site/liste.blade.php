@@ -30,7 +30,7 @@
                <i class="icon-globe font-20"></i>Liste des sites
             </div>
             <div class="actions">
-               @if(Auth::user()->profil_id == 1 or Stdfn::isActionAutorisee(Auth::user()->id, "ACC_001") or Stdfn::isActionAutorisee(Auth::user()->id, "ACC_002"))
+               @if(in_array(Auth::user()->profil_id, [1, 2]))
                   <a class="btn btn-success btn-sm mr-5" href="{{ route('ajouter_site') }}"><i class="fa fa-plus-circle"></i> Nouveau site</a>
                   <button type="button" class="btn btn-success btn-sm" data-toggle="modal" data-target="#ImporterSite">
                      <i class="icon-globe"></i> Importer des sites

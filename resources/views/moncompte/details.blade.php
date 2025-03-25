@@ -1,6 +1,6 @@
 @extends('layouts.app')
 @section('title')
-    <?php echo(html_entity_decode($utilisateur->nom_prenoms)) ?>
+   Mon compte
 @endsection
 @section('content')
 <style>
@@ -13,7 +13,7 @@
    }
 </style>
 <h3 class="page-title">
-   Détails : <?php echo(html_entity_decode($utilisateur->nom_prenoms)) ?>
+   Mon compte
 </h3>
 <div class="page-bar">
    <ul class="page-breadcrumb">
@@ -23,25 +23,13 @@
          <i class="fa fa-angle-right"></i>
       </li>
       <li>
-         <a href="#">Gestion des utilisateurs</a>
-         <i class="fa fa-angle-right"></i>
-      </li>
-      <li>
-         <a href="#">Détails : <?php echo(html_entity_decode($utilisateur->nom_prenoms)) ?></a>
+         <a href="#">Mon compte</a>
       </li>
    </ul> 
-   <div class="page-toolbar">
-      <a href="{{ route('liste_utilisateur') }}">
-         <div id="dashboard-report-range" class="tooltips btn btn-fit-height btn-sm green-haze btn-dashboard-daterange">
-            <i class="icon-arrow-left"></i>
-            Retour à la liste
-         </div>
-      </a>
-   </div>
 </div>
 <div class="row">
    <div class="col-md-12">
-      @include('includes.utilisateur')
+      @include('includes.moncompte')
       <div class="profile-content">
          <div class="row">
             <div class="col-md-12">
@@ -121,8 +109,7 @@
                                        <td>{!! html_entity_decode($action->action_nom) !!}</td>
                                        <td class="text-center">
                                           <i class="fa {{ $action->action_autorisee_statut == 'VALIDE' ? 'fa-toggle-on text-green' : 'fa-toggle-off text-danger' }} toggle-status"
-                                             style="font-size:25px; cursor:pointer;" @if(in_array(Auth::user()->profil_id, [1, 2]))
-                                             data-id="{{ $action->action_autorisee_id }}" @endif></i>
+                                             style="font-size:25px; cursor:pointer;"></i>
                                        </td>
                                        <td class="text-center">{{ Stdfn::dateFromDB($action->action_autorisee_datecrea) }}</td>
                                     </tr>

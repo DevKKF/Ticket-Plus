@@ -30,7 +30,7 @@
                <i class="icon-drawer font-20"></i>Liste des autres tickets
             </div>
             <div class="actions">
-               @if(Auth::user()->profil_id == 1 or Stdfn::isActionAutorisee(Auth::user()->id, "ACC_001") or Stdfn::isActionAutorisee(Auth::user()->id, "ACC_003") or Stdfn::isActionAutorisee(Auth::user()->id, "ACC_006"))
+               @if(in_array(Auth::user()->profil_id, [1, 2]))
                   <a class="btn btn-success btn-sm" href="{{ route('ajouter_ticket') }}"><i class="fa fa-plus-circle"></i> Nouveau ticket</a>
                @endif
                <div class="btn-group">
@@ -129,6 +129,9 @@
                               @if(in_array(Auth::user()->profil_id, [1, 2]))
                                  <a href="{{ route('modifier_ticket', $ticket->ticket_id) }}" title="Modifier" ><img src="{{ asset('assets/admin/images/icon/modifier.png') }}" width="20"></a>
                                  <span class="btnSupprimerTicket" data-ticket_id="{{ $ticket->ticket_id }}" title="Supprimer"><img src="{{ asset('assets/admin/images/icon/supprimer.png') }}" width="20"></span>
+                              @endif
+                              @if(Auth::user()->profil_id == 3)
+                                 <span data-toggle="modal" title="Demande d'action" data-target="#DemandeActionTicket{{ $ticket->ticket_id }}"><img src="{{ asset('assets/admin/images/icon/demande.png') }}" width="20"></span>
                               @endif
                            </td> 
                         </tr>

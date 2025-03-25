@@ -33,7 +33,7 @@
 
     .nav-tabs{
         border-bottom: 1px solid #ddd;
-        background: #020627;
+        background: #DA741E;
     }
 
     .font-bold{
@@ -43,13 +43,19 @@
     .button-tabs a:hover{
         color:#fff !important;
     }
+
+    .tabbable-custom.tabbable-noborder > .nav-tabs > li > a {
+        border: 0;
+        color: #000 !important;
+    }
+
 </style>
 <ul class="nav nav-tabs button-tabs">
     <li class="@if(substr($_SERVER['REQUEST_URI'], 0,  31) == '/gestion-des-sites/details-site') active text-black @endif text-uppercase">
         <a class="font-bold text-white font-14" href="{{ route('details_site',[$site->site_id, Stdfn::clean_url(html_entity_decode($site->site_ihs))]) }}">
         <i class="icon-list"></i> Liste des tickets</a>
     </li>
-    @if(Auth::user()->profil_id == 1 or Stdfn::isActionAutorisee(Auth::user()->id, "ACC_001"))
+    @if(in_array(Auth::user()->profil_id, [1, 2]))
         <li class="@if(substr($_SERVER['REQUEST_URI'], 0,  38) == '/gestion-des-sites/nouveau-ticket-site') active text-black @endif text-uppercase">
             <a class="font-bold text-white font-14" href="{{ route('nouveau_ticket_site',[$site->site_id, Stdfn::clean_url(html_entity_decode($site->site_ihs))]) }}">
             <i class="icon-drawer"></i> Nouveau ticket</a>

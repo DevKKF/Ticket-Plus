@@ -34,6 +34,7 @@
                 </div>
             </div>
             <div class="portlet-body form">
+            @if(in_array(Auth::user()->profil_id, [1, 2]))
                 <form  method="POST" action="{{ route('save_ticket') }}" enctype="multipart/form-data">
                     @csrf
                     <div class="form-body">
@@ -154,6 +155,7 @@
                         </div>
                     </div>
                 </form>
+            @endif
             </div>
         </div>
     </div>

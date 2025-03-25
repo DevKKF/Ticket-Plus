@@ -527,4 +527,69 @@ class UtilisateurController extends Controller
 		}
 	}
 
+    //Mon compte
+    public function MonCompte(Request $request){
+
+        $utilisateur = User::leftjoin('profil', 'profil.profil_id', 'users.profil_id')->find(Auth::id());
+
+        if (!empty($utilisateur)) {
+
+            $action_autorisees = ActionAutorisee::leftjoin('action', 'action.action_id', 'action_autorisee.action_id')->where(['action_autorisee.user_id'=>$utilisateur->id])->get();
+
+            return view('moncompte.details',[
+                'utilisateur' => $utilisateur, 
+                'action_autorisees'=>$action_autorisees, 
+            ]);
+
+        } else {
+            return back()->with('warning', 'Mon compte non trouvé !');
+        }
+    }
+
+    //Mot de passe 
+    public function ChangerMotPasse(Request $request){
+
+        $utilisateur = User::leftjoin('profil', 'profil.profil_id', 'users.profil_id')->find(Auth::id());
+
+        if (!empty($utilisateur)) {
+            return view('moncompte.motdepasse',[
+                'utilisateur' => $utilisateur, 
+            ]);
+
+        } else {
+            return back()->with('warning', 'Mon compte non trouvé !');
+        }
+    }
+
+    //Save changement mot de passe
+    public function SaveChangerMotPasse(Request $request){
+
+        $utilisateur = User::leftjoin('profil', 'profil.profil_id', 'users.profil_id')->find(Auth::id());
+
+        if (!empty($utilisateur)) {
+
+           // Valider les données du formulaire
+            $validatedData = $request->validate([
+                'password' => ['required', 'string', 'min:6'],
+            ], [
+                'password.required' => "Le nouveau mot de passe est obligatoire.",
+                'password.min' => "Le nouveau mot de passe doit être d'au moins de 6 caractères.",
+            ]);
+
+            $utilisateur = User::where(['users.id'=>Auth::user()->id])->first();
+
+            if($utilisateur){
+
+                $utilisateur->password = Hash::make($request->password);
+                $utilisateur->exists = true;
+                $utilisateur->save();
+
+                return back()->with('success', 'Mot de passe mis à jour avec succès.');
+            }
+
+        } else {
+            return back()->with('warning', 'Mon compte non trouvé !');
+        }
+    }
+
 }

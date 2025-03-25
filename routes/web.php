@@ -65,7 +65,8 @@ Route::get('/tickets/export/pdf', [TicketController::class, 'exporterPDF'])->nam
 
 //DEMANDE
 Route::get('gestion-des-demandes/liste-des-demandes', [DemandeController::class, 'ListeDesDemandes'])->name('liste_des_demandes');
-Route::get('gestion-des-demandes/details-demande/{demande_code}', [DemandeController::class, 'DetailsDemande'])->name('details_demande');
+Route::get('gestion-des-demandes/details-demande/{demande_id}', [DemandeController::class, 'DetailsDemande'])->name('details_demande');
+Route::post('traitement_demande/{demande_id}', [DemandeController::class, 'TraitementDemande'])->name('traitement_demande');
 
 //UTILISATEUR
 Route::get('/gestion-des-utilisateurs/ajouter-un-utilisateur', [UtilisateurController::class, 'AjouterUtilisateur'])->name('ajouter_utilisateur');
@@ -78,6 +79,9 @@ Route::get('/gestion-des-utilisateurs/modifier-utilisateur/{id}', [UtilisateurCo
 Route::post('/gestion-des-utilisateurs/modifier-utilisateur/{id}', [UtilisateurController::class, 'SaveModifierUtilisateur'])->name('save_modifier_utilisateur');
 Route::post('save_importer_utilisateur', [UtilisateurController::class, 'SaveImporterUtilisateur'])->name('save_importer_utilisateur');
 Route::post('supprimer_utilisateur', [UtilisateurController::class, 'SupprimerUtilisateur'])->name('supprimer_utilisateur');
+Route::get('mon-compte', [UtilisateurController::class, 'MonCompte'])->name('mon_compte');
+Route::get('mot-de-passe', [UtilisateurController::class, 'ChangerMotPasse'])->name('changer_mot_passe');
+Route::post('changer-mot-passe', [UtilisateurController::class, 'SaveChangerMotPasse'])->name('save_changer_mot_passe');
  
 //STATISTIQUES
 Route::get('/statistiques/statistiques-journaliere', [StatistiquesController::class, 'StatistiquesJournaliere'])->name('statistiques_journaliere');
@@ -128,6 +132,7 @@ Route::get('/chargement/site/{site_id}/info', [APIController::class, 'Chargement
 Route::get('/chargement/users/{site_id}/site', [APIController::class, 'ChargementUserSite'])->name('chargement_user_site');
 Route::post('chargement/ajax_statistiques_journaliere', [APIController::class, 'AjaxStatistiqueJournaliere'])->name('ajax_statistiques_journaliere');
 Route::get('/api/notifications', [APIController::class, 'getNotifications']);
+Route::get('/tickets-stats', [APIController::class, 'getTicketsStats']);
 
 //CHANGER MOT DE PASSE
 Route::get('mot-de-passe-oublie', [ChangerPasswordController::class, 'ChangePassword'])->name('password.change');

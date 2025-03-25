@@ -30,8 +30,10 @@
                <i class="icon-users font-20"></i>Liste des utilisateurs
             </div>
             <div class="actions">
+            @if(in_array(Auth::user()->profil_id, [1, 2]))
                <a class="btn btn-success btn-sm" href="{{ route('ajouter_utilisateur') }}"><i class="fa fa-plus-circle"></i> Nouveau utilisateur</a>
                <button class="btn btn-success btn-sm" data-toggle="modal" data-target="#ImporterUtilisateur"><i class="fa fa-users"></i> Importer des techniciens</button>
+            @endif 
             </div>
          </div>
          <div class="portlet-body">
@@ -91,8 +93,10 @@
                               <td>{{ Stdfn::dateFromDB($utilisateur->created_at) }}</td>
                               <td class="text-center action_button">
                                  <a href="{{ route('details_utilisateur',[$utilisateur->id, Stdfn::clean_url(html_entity_decode($utilisateur->nom_prenoms))]) }}"><img src="{{ asset('assets/admin/images/icon/details.png') }}" width="20"></a>
-                                 <a href="{{ route('modifier_utilisateur', $utilisateur->id) }}" title="Modifier" ><img src="{{ asset('assets/admin/images/icon/modifier.png') }}" width="20"></a>
-                                 <span class="btnSupprimerUtilisateur" data-utilisateur_id="{{ $utilisateur->id }}" title="Supprimer"><img src="{{ asset('assets/admin/images/icon/supprimer.png') }}" width="20"></span>
+                                 @if(in_array(Auth::user()->profil_id, [1, 2]))
+                                    <a href="{{ route('modifier_utilisateur', $utilisateur->id) }}" title="Modifier" ><img src="{{ asset('assets/admin/images/icon/modifier.png') }}" width="20"></a>
+                                    <span class="btnSupprimerUtilisateur" data-utilisateur_id="{{ $utilisateur->id }}" title="Supprimer"><img src="{{ asset('assets/admin/images/icon/supprimer.png') }}" width="20"></span>
+                                 @endif
                               </td> 
                            </tr>
                      @endforeach

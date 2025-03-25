@@ -31,7 +31,7 @@ class HomeController extends Controller
     public function index()
     {
 
-        if(Auth::user()->profil_id == 1 or Stdfn::isActionAutorisee(Auth::user()->id, "ACC_001") or Stdfn::isActionAutorisee(Auth::user()->id, "ACC_002")){
+        if(Auth::user()->profil_id == 1 or Auth::user()->profil_id == 2 or Stdfn::isActionAutorisee(Auth::user()->id, "ACC_007")){
             $ticket_cm = Ticket::leftjoin('site', 'site.site_id', 'ticket.site_id')
                                 ->join('type_action', 'type_action.type_action_id', 'ticket.type_action_id')
                                 ->whereBetween('type_action.type_action_code',['CM','MC'])

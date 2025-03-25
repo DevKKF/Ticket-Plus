@@ -46,7 +46,7 @@ class DemandeController extends Controller
         if(Auth::user()->profil_id == 1 or Auth::user()->profil_id == 2){
             
             //Changement du statut de la consultation.
-            Demande::where(['demande.demande_consulter'=>"NON"])->update(['demande_consulter'=>'OUI', 'demande_date_consulte'=>Carbon::now()]);
+            Demande::where(['demande.demande_consulter'=>"NON"])->update(['demande_consulter'=>'OUI', 'demande_date_consulte'=>Carbon::now(), 'consulterpar_id'=>Auth::id()]);
 
             //Bloc de la recherche dans les demandes
             $utilisateur = $request->query('u', '');
@@ -102,148 +102,98 @@ class DemandeController extends Controller
         }
 	}
 
-    //Save site
-    public function SaveTicket(Request $request){
-
-        $validator = Validator::make($request->all(), [
-            'date_declaration' => 'required|date',
-            'remarque' => 'required',
-            'taches_realisees' => 'required',
-            'type_action_id' => 'required',
-            'heure_fin' => 'required',
-            'date_fin' => 'required|date|after_or_equal:date_debut',
-            'heure_debut' => 'required',
-            'date_debut' => 'required|date',
-            'user_id' => 'required',
-            'site_id' => 'required',
-        ], [
-            'date_declaration.date' => "La date de déclaration doit être au format AAAA/JJ/MM.",
-            'date_declaration.required' => "La date de déclaration est obligatoire.",            
-            'taches_realisees.required' => "Les tâches réalisées sont obligatoire.",
-            'type_action_id.required' => "Le type d'action est obligatoire.",
-            'heure_fin.required' => "L'heure de fin est obligatoire.",
-            'date_fin.after_or_equal' => "La date de fin doit être postérieure ou égale à la date de début.",
-            'date_fin.date' => "La date de fin doit être au format AAAA/JJ/MM.",
-            'date_fin.required' => "La date de fin est obligatoire.",
-            'heure_debut.required' => "L'heure de début est obligatoire.",
-            'date_debut.date' => "La date de début doit être au format AAAA/JJ/MM.",
-            'date_debut.required' => "La date de début est obligatoire.",
-            'user_id.required' => "Le technicien est obligatoire.",
-            'site_id.required' => "Le site est obligatoire.",
-        ]);
-        
-        if ($validator->fails()) {
-            return back()
-                ->withErrors($validator)
-                ->withInput();
-        }
-
-        $site_rec = Site::find($request->site_id);
-        $type_action_rec = TypeAction::find($request->type_action_id);
-
-        //Préfixe du code du ticket
-        $prefixe = "";
-
-        if($type_action_rec->type_action_code == "PMEX"){
-            $prefixe = "PM";
-        }elseif($type_action_rec->type_action_code == "MC"){
-            $prefixe = "CM";
-        }else{
-            $prefixe = $type_action_rec->type_action_code;
-        }
-
-        // Générer le code du ticket
-        $code_ticket = Stdfn::genererCodeTicket($site_rec->site_sbc, $prefixe);
-
-        $date_delaismodification = Carbon::parse($request->date_declaration)->addDays(2);
-
-        $ticket = new Ticket();
- 
-        $ticket->user_id                 = $request->user_id;
-        $ticket->creerpar_id             = Auth::id();
-        $ticket->site_id                 = $request->site_id;
-        $ticket->type_action_id          = $request->type_action_id;
-        $ticket->ticket_code             = $code_ticket;
-        $ticket->ticket_datedebut        = htmlspecialchars($request->date_debut);
-        $ticket->ticket_heuredebut       = htmlspecialchars($request->heure_debut);
-        $ticket->ticket_datefin          = htmlspecialchars($request->date_fin);
-        $ticket->ticket_heurefin         = htmlspecialchars($request->heure_fin);
-        $ticket->ticket_tacherealisee    = htmlspecialchars($request->taches_realisees);
-        $ticket->ticket_remarque         = htmlspecialchars($request->remarque);
-        $ticket->ticket_description      = htmlspecialchars($request->description);
-        $ticket->ticket_datedeclaration  = htmlspecialchars($request->date_declaration);
-        $ticket->ticket_datedelaismodif  = $date_delaismodification;
-        $ticket->ticket_datecrea         = gmdate('Y-m-d H:i:s');
-        $ticket->save();
-
-        return back()->with('success',"Ticket enregsitré avec succès !");
-    }
-
-    //Liste des tickets
-    public function ListeTicket(Request $request)
+    //Détails de la demande
+    public function DetailsDemande(Request $request, $demande_id)
 	{
+        
+        Demande::where(['demande.demande_consulter'=>"NON", 'demande.demande_id'=>$demande_id])->update(['demande_consulter'=>'OUI', 'demande_date_consulte'=>Carbon::now(), 'consulterpar_id'=>Auth::id()]);
 
-        $code = $request->query('c', '');
-        $site = $request->query('s', '');
-        $typeaction = $request->query('t', '');
-        $datedeclaration = $request->query('d', '');
+        $demande = Demande::with(['enregistrer_par', 'consulter_par', 'valider_par', 'annuler_par'])
+                        ->leftJoin('ticket', 'ticket.ticket_id', 'demande.ticket_id')
+                        ->leftJoin('action_ticket', 'action_ticket.action_ticket_id', 'demande.action_ticket_id')
+                        ->leftJoin('users as createur', 'createur.id', 'demande.user_id')
+                        ->leftJoin('users as consulteur', 'consulteur.id', 'demande.consulterpar_id')
+                        ->leftJoin('users as valideur', 'valideur.id', 'demande.validerpar_id')
+                        ->leftJoin('users as annuleur', 'annuleur.id', 'demande.annulerpar_id')
+                        ->select('demande.*', 'action_ticket.*', 'ticket.*',
+                                'createur.nom_prenoms as createur_nom',
+                                'consulteur.nom_prenoms as consulteur_nom',
+                                'valideur.nom_prenoms as valideur_nom',
+                                'annuleur.nom_prenoms as annuleur_nom')
+                        ->where('demande.demande_id', $demande_id)
+                        ->first();
 
-        $whereRaw = ' 1 ';
+		if (!empty($demande)) {
 
-        if (!empty($code) || !empty($site) || !empty($typeaction) || !empty($datedeclaration)){
-            if(!empty($code)){
-                $whereRaw .= ' AND ticket.ticket_code LIKE "%' . $code . '%"';
-            }
+            $ticket = Ticket::with(['enregistrer_par', 'modifier_par'])
+                            ->leftJoin('site', 'site.site_id', 'ticket.site_id')
+                            ->leftJoin('zone', 'zone.zone_id', 'site.zone_id')
+                            ->leftJoin('type_action', 'type_action.type_action_id', 'ticket.type_action_id')
+                            ->leftJoin('users as createur', 'createur.id', 'ticket.creerpar_id')
+                            ->leftJoin('users as modificateur', 'modificateur.id', 'ticket.modifierpar_id')
+                            ->select('ticket.*', 'site.site_nom', 'zone.zone_nom', 'type_action.type_action_nom',
+                                    'createur.nom_prenoms as createur_nom',
+                                    'modificateur.nom_prenoms as modificateur_nom')
+                            ->where('ticket.ticket_id', $demande->ticket_id)
+                            ->first();
 
-            if(!empty($site)){
-                $whereRaw .= ' AND ticket.site_id = "' . $site . '"';
-            }
+            $historiques = HistoriqueTicket::leftJoin('site', 'site.site_id', 'historique_ticket.site_id')
+                        ->leftJoin('zone', 'zone.zone_id', 'site.zone_id')
+                        ->leftJoin('users', 'users.id', 'historique_ticket.user_id')
+                        ->leftJoin('type_action', 'type_action.type_action_id', 'historique_ticket.type_action_id')
+                        ->where('historique_ticket.ticket_id', $ticket->ticket_id)
+                        ->get();
 
-            if(!empty($typeaction)){
-                $whereRaw .= ' AND ticket.type_action_id = "' . $typeaction . '"';
-            }
+            return view('demande.details', [
+                'demande' => $demande, 
+                'ticket' => $ticket, 
+                'historiques' => $historiques, 
+            ]);
 
-            if (!empty($datedeclaration)) {
-                $whereRaw .= ' AND ticket.ticket_datedeclaration = "' . $datedeclaration . '"';
-            }
+        } else {
+            return back()->with('warning', 'Demande non trouvée !');
         }
-
-        if(Auth::user()->profil_id == 1 or Stdfn::isActionAutorisee(Auth::user()->id, "ACC_001") or Stdfn::isActionAutorisee(Auth::user()->id, "ACC_002")){
-            $tickets = Ticket::leftjoin('site', 'site.site_id', 'ticket.site_id')
-                            ->leftjoin('type_action', 'type_action.type_action_id', 'ticket.type_action_id')
-                            ->whereRaw($whereRaw)
-                            ->orderby('ticket_id','DESC')
-                            ->get();
-        }else{
-            $tickets = Ticket::leftjoin('site', 'site.site_id', 'ticket.site_id')
-                    ->leftjoin('type_action', 'type_action.type_action_id', 'ticket.type_action_id')
-                    ->whereRaw($whereRaw)
-                    ->where(['ticket.user_id'=>Auth::id()])
-                    ->orderby('ticket_id','DESC')
-                    ->get();
-        }
-		
-        $sites = Site::leftjoin('zone', 'zone.zone_id', 'site.zone_id')->where(['site_statut'=>"VALIDE"])->orderby('site_nom','ASC')->get();
-		$typeactions = TypeAction::where(['type_action_statut'=>"VALIDE"])->orderby('type_action_nom','ASC')->get();
-        $actionticket = ActionTicket::where(['action_ticket_statut'=>"VALIDE"])->orderby('action_ticket_id','ASC')->get();
-
-        // Stocker les données de recherche en session
-        Session::put('recherche_data_ticket', [
-            'code' => $code,
-            'site' => $site,
-            'typeaction' => $typeaction,
-            'datedeclaration' => $datedeclaration,
-        ]);
-
-		return view('ticket.liste', [
-            'tickets' => $tickets,  
-            'sites' => $sites, 
-            'typeactions' => $typeactions, 
-            'selected_code'=>$code,
-            'selected_site'=>$site,
-            'selected_typeaction'=>$typeaction,
-            'actionticket' => $actionticket,
-            'selected_datedeclaration'=>$datedeclaration,
-        ]);
 	}
+
+    //Traitement de la demande
+    public function TraitementDemande(Request $request, $demande_id)
+	{
+        $demande = Demande::find($demande_id);
+        
+        if (!empty($demande)) {
+
+            $validator = Validator::make($request->all(), [
+                'demande_date' => 'required|date',
+                'action' => 'required',
+            ], [            
+                'demande_date.date' => "La date du traitement doit être au format AAAA/JJ/MM.",
+                'demande_date.required' => "La date du traitement est obligatoire.",
+                'action.required' => "L'action à faire est obligatoire.",
+            ]);
+            
+            if ($validator->fails()) {
+                return back()
+                    ->withErrors($validator)
+                    ->withInput();
+            }
+
+            if($request->action == "ACCEPTE"){
+                $demande->validerpar_id           = Auth::id();
+                $demande->demande_date_valide     = gmdate('Y-m-d H:i:s');
+            }else{
+                $demande->annulerpar_id           = Auth::id();
+                $demande->demande_date_annuelle   = gmdate('Y-m-d H:i:s');
+            }
+            $demande->demande_motif_annule        = htmlspecialchars($request->description);
+            $demande->demande_statut              = htmlspecialchars($request->action);
+            $demande->exists                      = true;
+            $demande->save();
+    
+            return back()->with('success',"Demande traitée avec succès !");
+
+        } else {
+            return back()->with('warning', 'Demande non trouvés !');
+        }
+	}
+
 }

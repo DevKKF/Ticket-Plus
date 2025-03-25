@@ -142,7 +142,7 @@ class SiteController extends Controller
             }
         }
 
-        if(Auth::user()->profil_id == 1 or Stdfn::isActionAutorisee(Auth::user()->id, "ACC_001")or Stdfn::isActionAutorisee(Auth::user()->id, "ACC_002") or Stdfn::isActionAutorisee(Auth::user()->id, "ACC_005")){
+        if(Auth::user()->profil_id == 1 or Auth::user()->profil_id == 2 or Stdfn::isActionAutorisee(Auth::user()->id, "ACC_007")){
 
             $sites = Site::leftjoin('region', 'region.region_id', 'site.region_id')
                         ->leftjoin('zone', 'zone.zone_id', 'site.zone_id')

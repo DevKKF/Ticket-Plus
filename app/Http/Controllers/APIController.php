@@ -20,6 +20,8 @@ use App\Models\SiteUser;
 use App\Models\Ticket;
 use App\Models\Demande;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
+use App\Models\Stdfn;
 
 class APIController extends Controller
 {
@@ -160,7 +162,7 @@ class APIController extends Controller
                 $temps = $dateCreation->diffForHumans($maintenant);
             }
 
-            $details = route('details_demande', $demande->demande_code);
+            $details = route('details_demande', $demande->demande_id);
 
             return [
                 'titre' => $demande->nom_prenoms,
@@ -173,6 +175,56 @@ class APIController extends Controller
             'count' => $demandes->count(),
             'notifications' => $notifications,
         ]);
+    }
+
+    /**
+     * Récupère les statistiques des tickets pour aujourd'hui
+     */
+    public function getTicketsStats()
+    {
+        try {
+            if(Auth::user()->profil_id == 1 || Stdfn::isActionAutorisee(Auth::user()->id, "ACC_001") || Stdfn::isActionAutorisee(Auth::user()->id, "ACC_002")) {
+                $query = Ticket::leftjoin('site', 'site.site_id', 'ticket.site_id')
+                              ->join('type_action', 'type_action.type_action_id', 'ticket.type_action_id')
+                              ->whereDate('ticket_datedeclaration', Carbon::today());
+            } else {
+                $query = Ticket::leftjoin('site', 'site.site_id', 'ticket.site_id')
+                              ->join('type_action', 'type_action.type_action_id', 'ticket.type_action_id')
+                              ->where(['ticket.user_id' => Auth::user()->id])
+                              ->whereDate('ticket_datedeclaration', Carbon::today());
+            }
+
+            $stats = [
+                'ticket_cm' => (clone $query)->whereBetween('type_action.type_action_code', ['CM', 'MC'])->count(),
+                'ticket_pm' => (clone $query)->whereBetween('type_action.type_action_code', ['PM', 'PMEX'])->count(),
+                'autres_tickets' => (clone $query)->whereNotIn('type_action.type_action_code', ['CM', 'MC', 'PM', 'PMEX'])->count()
+            ];
+
+            return response()->json([
+                'success' => true,
+                'data' => $stats,
+                'labels' => [
+                    'Tickets CM/MC',
+                    'Tickets PM/PMEX',
+                    'Autres Tickets'
+                ],
+                'colors' => [
+                    'rgba(231, 76, 60, 0.7)',   // Rouge pour CM/MC
+                    'rgba(52, 152, 219, 0.7)',   // Bleu pour PM/PMEX
+                    'rgba(46, 204, 113, 0.7)'    // Vert pour Autres
+                ],
+                'borderColors' => [
+                    'rgb(231, 76, 60)',
+                    'rgb(52, 152, 219)',
+                    'rgb(46, 204, 113)'
+                ]
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de la récupération des statistiques: ' . $e->getMessage()
+            ], 500);
+        }
     }
         
 }
