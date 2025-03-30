@@ -125,6 +125,7 @@ $(document).ready(function () {
 $(document).ready(function () {
     $('.toggle-status').on('click', function () {
         let actionId = $(this).data('id');
+        alert("action");
         let icon = $(this);
         let newStatus = icon.hasClass('fa-toggle-on') ? 'BROUILLON' : 'VALIDE'; // Inversion du statut
 

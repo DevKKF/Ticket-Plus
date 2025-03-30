@@ -121,8 +121,8 @@
                                        <td>{!! html_entity_decode($action->action_nom) !!}</td>
                                        <td class="text-center">
                                           <i class="fa {{ $action->action_autorisee_statut == 'VALIDE' ? 'fa-toggle-on text-green' : 'fa-toggle-off text-danger' }} toggle-status"
-                                             style="font-size:25px; cursor:pointer;" @if(in_array(Auth::user()->profil_id, [1, 2]))
-                                             data-id="{{ $action->action_autorisee_id }}" @endif></i>
+                                             style="font-size:25px; cursor:pointer;"
+                                             data-id="{{ $action->action_autorisee_id }}"></i>
                                        </td>
                                        <td class="text-center">{{ Stdfn::dateFromDB($action->action_autorisee_datecrea) }}</td>
                                     </tr>

@@ -168,7 +168,7 @@ class TicketController extends Controller
             }
         }
 
-        if(Auth::user()->profil_id == 1 or Stdfn::isActionAutorisee(Auth::user()->id, "ACC_001") or Stdfn::isActionAutorisee(Auth::user()->id, "ACC_002")){
+        if(Auth::user()->profil_id == 1 or Auth::user()->profil_id == 2 or Stdfn::isActionAutorisee(Auth::user()->id, "ACC_007")){
             $tickets = Ticket::leftjoin('site', 'site.site_id', 'ticket.site_id')
                             ->leftjoin('type_action', 'type_action.type_action_id', 'ticket.type_action_id')
                             ->whereRaw($whereRaw)
@@ -331,7 +331,7 @@ class TicketController extends Controller
             $historique_ticket = new HistoriqueTicket();
 
             $historique_ticket->ticket_id                          = $ticket->ticket_id;
-            $historique->user_id                                   = Auth::id();
+            $historique_ticket->user_id                            = Auth::user()->id;
             $historique_ticket->creerpar_id                        = $ticket->creerpar_id;
             $historique_ticket->modifierpar_id                     = $ticket->modifierpar_id;
             $historique_ticket->site_id                            = $ticket->site_id;
@@ -417,6 +417,7 @@ class TicketController extends Controller
             $demande->demande_a_traiter     = htmlspecialchars($request->demande_a_traiter);
             $demande->demande_description   = htmlspecialchars($request->description);
             $demande->demande_datecrea      = gmdate('Y-m-d H:i:s');
+            $demande->demande_consulter     = "NON";
             $demande->demande_statut        = "EN COURS";
             $demande->save();
     
@@ -672,7 +673,7 @@ class TicketController extends Controller
         // Récupère les données de session ou un tableau vide
         $data = Session::get('recherche_data_ticket', []); 
 
-        if(Auth::user()->profil_id == 1 or Stdfn::isActionAutorisee(Auth::user()->id, "ACC_001") or Stdfn::isActionAutorisee(Auth::user()->id, "ACC_003") or Stdfn::isActionAutorisee(Auth::user()->id, "ACC_006")){
+        if(Auth::user()->profil_id == 1 or Auth::user()->profil_id == 2 or Stdfn::isActionAutorisee(Auth::user()->id, "ACC_007")){
 
             $query = Ticket::select('ticket_code', 'site_ihs', 'site_nom', 'site_sbc', 'nom_prenoms', 'telephone', 'autre_telephone', 'ticket_datedebut', 'ticket_heuredebut', 'type_action_nom', 'ticket_tacherealisee', 'ticket_remarque', 'ticket_datefin', 'ticket_heurefin')
                             ->leftjoin('site', 'site.site_id', '=', 'ticket.site_id')
@@ -692,7 +693,7 @@ class TicketController extends Controller
                     $query->where('type_action.type_action_id', '=', $data['typeaction']);
                 }
                 if (!empty($data['datedeclaration'])) {
-                    $query->where('ticket.site_date_creation', '=', $data['datedeclaration']);
+                    $query->where('ticket.ticket_datedeclaration', '=', $data['datedeclaration']);
                 }
             }
 
@@ -714,7 +715,7 @@ class TicketController extends Controller
         //Récupère les données de session ou un tableau vide
         $data = Session::get('recherche_data_ticket', []); 
 
-        if(Auth::user()->profil_id == 1 or Stdfn::isActionAutorisee(Auth::user()->id, "ACC_001") or Stdfn::isActionAutorisee(Auth::user()->id, "ACC_003") or Stdfn::isActionAutorisee(Auth::user()->id, "ACC_006")){
+        if(Auth::user()->profil_id == 1 or Auth::user()->profil_id == 2 or Stdfn::isActionAutorisee(Auth::user()->id, "ACC_007")){
 
             $query = Ticket::select('ticket_code', 'site_ihs', 'site_nom', 'site_sbc', 'nom_prenoms', 'telephone', 'autre_telephone', 'ticket_datedebut', 'ticket_heuredebut', 'type_action_nom', 'ticket_tacherealisee', 'ticket_remarque', 'ticket_datefin', 'ticket_heurefin')
                             ->leftjoin('site', 'site.site_id', '=', 'ticket.site_id')
@@ -734,7 +735,7 @@ class TicketController extends Controller
                     $query->where('type_action.type_action_id', '=', $data['typeaction']);
                 }
                 if (!empty($data['datedeclaration'])) {
-                    $query->where('ticket.site_date_creation', '=', $data['datedeclaration']);
+                    $query->where('ticket.ticket_datedeclaration', '=', $data['datedeclaration']);
                 }
             }
 
@@ -756,7 +757,7 @@ class TicketController extends Controller
         //Récupère les données de session ou un tableau vide
         $data = Session::get('recherche_data_ticket', []); 
 
-        if(Auth::user()->profil_id == 1 or Stdfn::isActionAutorisee(Auth::user()->id, "ACC_001") or Stdfn::isActionAutorisee(Auth::user()->id, "ACC_003") or Stdfn::isActionAutorisee(Auth::user()->id, "ACC_006")){
+        if(Auth::user()->profil_id == 1 or Auth::user()->profil_id == 2 or Stdfn::isActionAutorisee(Auth::user()->id, "ACC_007")){
 
             $query = Ticket::leftjoin('site', 'site.site_id', '=', 'ticket.site_id')
                             ->leftjoin('users', 'users.id', '=', 'ticket.user_id')
@@ -775,7 +776,7 @@ class TicketController extends Controller
                     $query->where('type_action.type_action_id', '=', $data['typeaction']);
                 }
                 if (!empty($data['datedeclaration'])) {
-                    $query->where('ticket.site_date_creation', '=', $data['datedeclaration']);
+                    $query->where('ticket.ticket_datedeclaration', '=', $data['datedeclaration']);
                 }
             }
 

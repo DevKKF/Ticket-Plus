@@ -115,11 +115,7 @@ class DemandeController extends Controller
                         ->leftJoin('users as consulteur', 'consulteur.id', 'demande.consulterpar_id')
                         ->leftJoin('users as valideur', 'valideur.id', 'demande.validerpar_id')
                         ->leftJoin('users as annuleur', 'annuleur.id', 'demande.annulerpar_id')
-                        ->select('demande.*', 'action_ticket.*', 'ticket.*',
-                                'createur.nom_prenoms as createur_nom',
-                                'consulteur.nom_prenoms as consulteur_nom',
-                                'valideur.nom_prenoms as valideur_nom',
-                                'annuleur.nom_prenoms as annuleur_nom')
+                        ->select('demande.*', 'action_ticket.*', 'ticket.*')
                         ->where('demande.demande_id', $demande_id)
                         ->first();
 
